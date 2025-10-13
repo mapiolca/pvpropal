@@ -612,8 +612,41 @@ class modPvPropal extends DolibarrModules
 			return;
 		}
 
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+
+		// Reuse stored identifier when available / Réutilise l'identifiant stocké si disponible
+		$storedId = (int) getDolGlobalInt('PVPROPAL_NATURE_MOD_ID', 0);
+		if ($storedId > 0) {
+			$sqlStored = "SELECT rowid, code FROM ".$this->db->prefix()."c_product_nature WHERE rowid = ".$storedId;
+			$resStored = $this->db->query($sqlStored);
+			if ($resStored) {
+				$storedObj = $this->db->fetch_object($resStored);
+				if ($storedObj) {
+					// Refresh constants for the existing value / Rafraîchit les constantes pour la valeur existante
+					dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_ID', (string) $storedObj->rowid, 'chaine', 0, '', 0);
+					dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_CODE', (string) $storedObj->code, 'chaine', 0, '', 0);
+					return;
+				}
+			}
+		}
+
+		// Look for an existing entry by label / Recherche une entrée existante par libellé
+		$sqlExisting = "SELECT rowid, code FROM ".$this->db->prefix()."c_product_nature WHERE label = 'Module photovoltaïque' ORDER BY rowid ASC";
+		$resExisting = $this->db->query($sqlExisting);
+		if ($resExisting) {
+			$existing = $this->db->fetch_object($resExisting);
+			if ($existing) {
+				// Reuse the found entry and store identifiers / Réutilise l'entrée trouvée et stocke les identifiants
+				dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_ID', (string) $existing->rowid, 'chaine', 0, '', 0);
+				dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_CODE', (string) $existing->code, 'chaine', 0, '', 0);
+				return;
+			}
+		}
+
+		$code = $this->generateProductNatureCode();
+
 		$fields = array(
-			'code' => "'MOD'",
+			'code' => "'".$this->db->escape($code)."'",
 			'label' => "'Module photovoltaïque'"
 		);
 
@@ -627,17 +660,17 @@ class modPvPropal extends DolibarrModules
 			$fields['entity'] = '0';
 		}
 
-		$sql = "INSERT INTO ".$this->db->prefix()."c_product_nature (".implode(', ', array_keys($fields)).") SELECT ".implode(', ', $fields)." FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD')";
+		$sql = "INSERT INTO ".$this->db->prefix()."c_product_nature (".implode(', ', array_keys($fields)).") SELECT ".implode(', ', $fields)." FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_product_nature WHERE code = '".$this->db->escape($code)."')";
 		$this->db->query($sql);
 
-		include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-		$sqlid = "SELECT rowid FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD' ORDER BY rowid ASC";
+		$sqlid = "SELECT rowid, code FROM ".$this->db->prefix()."c_product_nature WHERE code = '".$this->db->escape($code)."' ORDER BY rowid ASC";
 		$resql = $this->db->query($sqlid);
 		if ($resql) {
 			$obj = $this->db->fetch_object($resql);
 			if ($obj) {
-				// Store the dictionary identifier globally for every company / Stocker l'identifiant du dictionnaire pour chaque entité
+				// Store the dictionary identifier globally for every company / Stocke l'identifiant du dictionnaire pour chaque entité
 				dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_ID', (string) $obj->rowid, 'chaine', 0, '', 0);
+				dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_CODE', (string) $obj->code, 'chaine', 0, '', 0);
 			}
 		}
 	}
@@ -651,9 +684,76 @@ class modPvPropal extends DolibarrModules
 	private function deleteProductNatureValue()
 	{
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-		$sql = "DELETE FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD'";
-		$this->db->query($sql);
+		$natureId = (int) getDolGlobalInt('PVPROPAL_NATURE_MOD_ID', 0);
+		if ($natureId > 0) {
+			$sql = "DELETE FROM ".$this->db->prefix()."c_product_nature WHERE rowid = ".$natureId;
+			$this->db->query($sql);
+		} else {
+			$sql = "DELETE FROM ".$this->db->prefix()."c_product_nature WHERE label = 'Module photovoltaïque'";
+			$this->db->query($sql);
+		}
 		dolibarr_del_const($this->db, 'PVPROPAL_NATURE_MOD_ID', 0);
+		dolibarr_del_const($this->db, 'PVPROPAL_NATURE_MOD_CODE', 0);
+	}
+
+	/**
+	 * Generate the next product nature code.
+	 * Génère le prochain code de nature de produit.
+	 *
+	 * @return string
+	 */
+	private function generateProductNatureCode()
+	{
+		$defaultCode = '01';
+		$nextCode = $defaultCode;
+
+		$sql = "SELECT code FROM ".$this->db->prefix()."c_product_nature ORDER BY CAST(code AS UNSIGNED) DESC LIMIT 1";
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$obj = $this->db->fetch_object($resql);
+			if ($obj && preg_match('/^\\d+$/', (string) $obj->code)) {
+				$length = strlen((string) $obj->code);
+				$length = $length > 0 ? $length : strlen($defaultCode);
+				$numericCode = (int) $obj->code;
+				$numericCode++;
+				$nextCode = str_pad((string) $numericCode, $length, '0', STR_PAD_LEFT);
+			}
+		}
+
+		// Ensure uniqueness by incrementing until a free code is found / Garantit l'unicité en incrémentant jusqu'à trouver un code libre
+		while ($this->productNatureCodeExists($nextCode)) {
+			if (preg_match('/^\\d+$/', $nextCode)) {
+				$length = strlen($nextCode);
+				$numericCode = (int) $nextCode;
+				$numericCode++;
+				$nextCode = str_pad((string) $numericCode, $length, '0', STR_PAD_LEFT);
+			} else {
+				$nextCode .= '0';
+			}
+		}
+
+		return $nextCode;
+	}
+
+	/**
+	 * Check if a product nature code already exists.
+	 * Vérifie si un code de nature de produit existe déjà.
+	 *
+	 * @param string $code Product nature code / Code de nature de produit
+	 * @return bool
+	 */
+	private function productNatureCodeExists($code)
+	{
+		$sql = "SELECT rowid FROM ".$this->db->prefix()."c_product_nature WHERE code = '".$this->db->escape($code)."'";
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$obj = $this->db->fetch_object($resql);
+			if ($obj) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

@@ -260,7 +260,7 @@ class Interface99ModpvpropalPvpropaltrigger extends DolibarrTriggers
 		return $cache[$productId];
 	}
 
-	$sql = "SELECT p.rowid, p.fk_product_nature, p.pmp, p.cost_price, pn.code as naturecode, ef.modulepvpc as modulepvpc".
+	$sql = "SELECT p.rowid, p.fk_product_nature, p.pmp, p.cost_price, pn.code as naturecode, pn.rowid as naturerowid, ef.modulepvpc as modulepvpc".
 		" FROM ".$this->db->prefix()."product as p".
 		" LEFT JOIN ".$this->db->prefix()."product_extrafields as ef ON ef.fk_object = p.rowid".
 		" LEFT JOIN ".$this->db->prefix()."c_product_nature as pn ON pn.rowid = p.fk_product_nature".
@@ -272,17 +272,20 @@ class Interface99ModpvpropalPvpropaltrigger extends DolibarrTriggers
 		$obj = $this->db->fetch_object($resql);
 		if ($obj) {
 		$power = isset($obj->modulepvpc) ? (float) $obj->modulepvpc : 0.0;
-		$natureCode = !empty($obj->naturecode) ? $obj->naturecode : (isset($obj->fk_product_nature) ? $obj->fk_product_nature : '');
+		$natureCode = !empty($obj->naturecode) ? $obj->naturecode : '';
+		// Resolve the nature identifier from dictionary data / Résout l'identifiant de nature depuis le dictionnaire
+		$natureId = isset($obj->naturerowid) ? (int) $obj->naturerowid : (isset($obj->fk_product_nature) ? (int) $obj->fk_product_nature : 0);
+
+		// Determine PV nature using stored identifiers / Détermine la nature PV via les identifiants stockés
+		$expectedId = (int) getDolGlobalInt('PVPROPAL_NATURE_MOD_ID', 0);
+		$expectedCode = getDolGlobalString('PVPROPAL_NATURE_MOD_CODE', '');
 
 		$natureMatches = false;
-		if (!empty($natureCode)) {
-			if ((string) $natureCode === 'MOD') {
+		if ($expectedId > 0 && $natureId > 0 && $natureId === $expectedId) {
 			$natureMatches = true;
-			} elseif (is_numeric($natureCode) && (int) $natureCode === (int) getDolGlobalInt('PVPROPAL_NATURE_MOD_ID', 0)) {
+		} elseif (!empty($expectedCode) && (string) $natureCode === (string) $expectedCode) {
 			$natureMatches = true;
-			}
 		}
-
 		$data['is_pv'] = ($natureMatches && $power > 0);
 		$data['power'] = price2num($power, 'CU');
 		$data['pmp'] = isset($obj->pmp) ? (float) $obj->pmp : 0.0;
