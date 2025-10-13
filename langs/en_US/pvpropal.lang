@@ -40,3 +40,21 @@ MyPageName = My page name
 #
 MyWidget = My widget
 MyWidgetDescription = My widget description
+
+# PvPropal extras
+ExtraProductPvPeakPower = PV module peak power (Wc)
+ExtraProductPvPeakPowerHelp = Peak power of the photovoltaic module expressed in watt-peak. Visible only for PV modules.
+ExtraProposalPvTotalPower = PV total peak power (Wc)
+ExtraProposalPvTotalPowerHelp = Sum of (quantity × unit peak power) for all PV products on the proposal.
+ExtraProposalPvSalePerWc = Sale price per watt-peak
+ExtraProposalPvSalePerWcHelp = Ratio between the proposal total sale price excluding tax and the total PV peak power.
+ExtraProposalPvCostPerWc = Cost price per watt-peak
+ExtraProposalPvCostPerWcHelp = Ratio between the proposal total cost price excluding tax and the total PV peak power.
+ExtraProposalPvMarginRate = Margin rate (%)
+ExtraProposalPvMarginRateHelp = Margin expressed as a percentage of the sale price.
+ExtraProposalPvMargin = Margin (€)
+ExtraProposalPvMarginHelp = Absolute margin in euros = total sale price minus total purchase price.
+ExtraProposalPvTargetMargin = Target margin (€)
+ExtraProposalPvTargetMarginHelp = Target margin computed from dictionary c_ppv_marge_cible_wc and total PV power.
+ExtraProposalPvTargetMarginRate = Target margin rate (%)
+ExtraProposalPvTargetMarginRateHelp = Target margin expressed as a percentage of the sale price.

@@ -92,7 +92,7 @@ class modPvPropal extends DolibarrModules
 		// Define some features supported by module (triggers, login, substitutions, menus, css, etc...)
 		$this->module_parts = array(
 			// Set this to 1 if module has its own trigger directory (core/triggers)
-			'triggers' => 0,
+			'triggers' => 1,
 			// Set this to 1 if module has its own login method file (core/login)
 			'login' => 0,
 			// Set this to 1 if module has its own substitution function file (core/substitutions)
@@ -478,50 +478,10 @@ class modPvPropal extends DolibarrModules
 			return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 		}
 
-		// Create extrafields during init
-		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		$extrafields = new ExtraFields($this->db);
-		$result0=$extrafields->addExtraField('jpsun_module_pv_pc', 'jpsun_module_pv_pc', 'int', 1, '4', 'product', 0, 0, '', '', 1, '', '($object->finished == 2 ? -1:0)', 'jpsun_module_pv_pc_help', '', $conf->entity, 'jpsun@jpsun', '$conf->jpsun->enabled');
-		$result0=$extrafields->addExtraField('jpsun_module_pv_pc', 'jpsun_module_pv_pc', 'int', 1, '4', 'product', 0, 0, '', '', 1, '', '($object->finished == 2 ? -1:0)', 'jpsun_module_pv_pc_help', '', $conf->entity, 'jpsun@jpsun', '$conf->jpsun->enabled');
-	
+		$this->createProductNatureValue();
+		$this->createExtraFields();
 
-		// Permissions
-		$this->remove($options);
-
-		$sql = array();
-
-		// Document templates
-		$moduledir = dol_sanitizeFileName('pvpropal');
-		$myTmpObjects = array();
-		$myTmpObjects['MyObject'] = array('includerefgeneration' => 0, 'includedocgeneration' => 0);
-
-		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-			if ($myTmpObjectArray['includerefgeneration']) {
-				$src = DOL_DOCUMENT_ROOT.'/install/doctemplates/'.$moduledir.'/template_myobjects.odt';
-				$dirodt = DOL_DATA_ROOT.($conf->entity > 1 ? '/'.$conf->entity : '').'/doctemplates/'.$moduledir;
-				$dest = $dirodt.'/template_myobjects.odt';
-
-				if (file_exists($src) && !file_exists($dest)) {
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-					dol_mkdir($dirodt);
-					$result = dol_copy($src, $dest, '0', 0);
-					if ($result < 0) {
-						$langs->load("errors");
-						$this->error = $langs->trans('ErrorFailToCopyFile', $src, $dest);
-						return 0;
-					}
-				}
-
-				$sql = array_merge($sql, array(
-					"DELETE FROM ".$this->db->prefix()."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".$this->db->escape(strtolower($myTmpObjectKey))."' AND entity = ".((int) $conf->entity),
-					"INSERT INTO ".$this->db->prefix()."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."', '".$this->db->escape(strtolower($myTmpObjectKey))."', ".((int) $conf->entity).")",
-					"DELETE FROM ".$this->db->prefix()."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".$this->db->escape(strtolower($myTmpObjectKey))."' AND entity = ".((int) $conf->entity),
-					"INSERT INTO ".$this->db->prefix()."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".$this->db->escape(strtolower($myTmpObjectKey))."', ".((int) $conf->entity).")"
-				));
-			}
-		}
-
-		return $this->_init($sql, $options);
+		return $this->_init(array(), $options);
 	}
 
 	/**
@@ -534,7 +494,186 @@ class modPvPropal extends DolibarrModules
 	 */
 	public function remove($options = '')
 	{
-		$sql = array();
-		return $this->_remove($sql, $options);
+		$this->deleteExtraFields();
+		$this->deleteProductNatureValue();
+
+		return $this->_remove(array(), $options);
+	}
+
+	/**
+	 * Create extra fields required by the module.
+	 * Créer les champs supplémentaires requis par le module.
+	 *
+	 * @return void
+	 */
+	private function createExtraFields()
+	{
+		global $conf;
+
+		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+		$extrafields = new ExtraFields($this->db);
+
+		$entity = 0;
+		$langfile = 'pvpropal@pvpropal';
+		$enabled = '$conf->pvpropal->enabled';
+
+		$fields = array(
+			'product' => array(
+				'modulepvpc' => array(
+					'label' => 'ExtraProductPvPeakPower',
+					'help' => 'ExtraProductPvPeakPowerHelp',
+					'type' => 'double',
+					'pos' => 10,
+					'size' => '24,8',
+					'perms' => '((int) (!empty($object->fk_product_nature) && ((string) $object->fk_product_nature === "MOD" || (int) $object->fk_product_nature === getDolGlobalInt("PVPROPAL_NATURE_MOD_ID", 0))))',
+					'list' => '1'
+				)
+			),
+			'propal' => array(
+				'ppvpc' => array('label' => 'ExtraProposalPvTotalPower', 'help' => 'ExtraProposalPvTotalPowerHelp'),
+				'ppvpvwc' => array('label' => 'ExtraProposalPvSalePerWc', 'help' => 'ExtraProposalPvSalePerWcHelp'),
+				'ppvpawc' => array('label' => 'ExtraProposalPvCostPerWc', 'help' => 'ExtraProposalPvCostPerWcHelp'),
+				'ppvtxmarge' => array('label' => 'ExtraProposalPvMarginRate', 'help' => 'ExtraProposalPvMarginRateHelp'),
+				'ppvmarge' => array('label' => 'ExtraProposalPvMargin', 'help' => 'ExtraProposalPvMarginHelp'),
+				'ppvmargecible' => array('label' => 'ExtraProposalPvTargetMargin', 'help' => 'ExtraProposalPvTargetMarginHelp'),
+				'ppvtxmargecible' => array('label' => 'ExtraProposalPvTargetMarginRate', 'help' => 'ExtraProposalPvTargetMarginRateHelp')
+			)
+		);
+
+		foreach ($fields as $element => $definitions) {
+			$position = 10;
+			foreach ($definitions as $code => $definition) {
+				$type = !empty($definition['type']) ? $definition['type'] : 'double';
+				$size = !empty($definition['size']) ? $definition['size'] : '24,8';
+				$perms = !empty($definition['perms']) ? $definition['perms'] : '';
+				$list = !empty($definition['list']) ? $definition['list'] : '1';
+				$help = !empty($definition['help']) ? $definition['help'] : '';
+
+				$result = $extrafields->addExtraField($code, $definition['label'], $type, $position, $size, $element, 0, 0, '', '', 0, $perms, $list, $help, '', $entity, $langfile, $enabled, 0, 1);
+				if ($result < 0 && $extrafields->error != 'ErrorFieldAlreadyExists') {
+					continue;
+				}
+
+				if ($element === 'propal') {
+					$this->configurePropalVisibility($code);
+				}
+
+				$position += 10;
+			}
+		}
+	}
+
+	/**
+	 * Define list/export visibility for proposal extra fields.
+	 * Définit la visibilité liste/export des champs supplémentaires des propositions.
+	 *
+	 * @param string $code Extra field code / Code du champ
+	 * @return void
+	 */
+	private function configurePropalVisibility($code)
+	{
+		$sql = "UPDATE ".$this->db->prefix()."extrafields SET visible = 0, list = 1, printable = 1 WHERE name = '".$this->db->escape($code)."' AND elementtype = 'propal'";
+		$this->db->query($sql);
+	}
+
+	/**
+	 * Delete extra fields created by the module.
+	 * Supprime les champs supplémentaires créés par le module.
+	 *
+	 * @return void
+	 */
+	private function deleteExtraFields()
+	{
+		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+		$extrafields = new ExtraFields($this->db);
+
+		$map = array(
+			'product' => array('modulepvpc'),
+			'propal' => array('ppvpc', 'ppvpvwc', 'ppvpawc', 'ppvtxmarge', 'ppvmarge', 'ppvmargecible', 'ppvtxmargecible')
+		);
+
+		foreach ($map as $element => $codes) {
+			foreach ($codes as $code) {
+				$extrafields->delete($code, $element);
+			}
+		}
+	}
+
+	/**
+	 * Create the product nature dictionary value.
+	 * Crée la valeur de dictionnaire de nature de produit.
+	 *
+	 * @return void
+	 */
+	private function createProductNatureValue()
+	{
+		$columns = $this->describeTable($this->db->prefix().'c_product_nature');
+		if (empty($columns)) {
+			return;
+		}
+
+		$fields = array(
+			'code' => "'MOD'",
+			'label' => "'Module photovoltaïque'"
+		);
+
+		if (isset($columns['active'])) {
+			$fields['active'] = '1';
+		}
+		if (isset($columns['position'])) {
+			$fields['position'] = '1000';
+		}
+		if (isset($columns['entity'])) {
+			$fields['entity'] = '0';
+		}
+
+		$sql = "INSERT INTO ".$this->db->prefix()."c_product_nature (".implode(', ', array_keys($fields)).") SELECT ".implode(', ', $fields)." FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD')";
+		$this->db->query($sql);
+
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+		$sqlid = "SELECT rowid FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD' ORDER BY rowid ASC";
+		$resql = $this->db->query($sqlid);
+		if ($resql) {
+			$obj = $this->db->fetch_object($resql);
+			if ($obj) {
+				// Store the dictionary identifier globally for every company / Stocker l'identifiant du dictionnaire pour chaque entité
+				dolibarr_set_const($this->db, 'PVPROPAL_NATURE_MOD_ID', (string) $obj->rowid, 'chaine', 0, '', 0);
+			}
+		}
+	}
+
+	/**
+	 * Remove the product nature dictionary value.
+	 * Supprime la valeur de dictionnaire de nature de produit.
+	 *
+	 * @return void
+	 */
+	private function deleteProductNatureValue()
+	{
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+		$sql = "DELETE FROM ".$this->db->prefix()."c_product_nature WHERE code = 'MOD'";
+		$this->db->query($sql);
+		dolibarr_del_const($this->db, 'PVPROPAL_NATURE_MOD_ID', 0);
+	}
+
+	/**
+	 * Get table description.
+	 * Retourne la description d'une table.
+	 *
+	 * @param string $table Table name / Nom de la table
+	 * @return array<string, string>
+	 */
+	private function describeTable($table)
+	{
+		$columns = array();
+		$sql = 'SHOW COLUMNS FROM '.$table;
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			while ($obj = $this->db->fetch_object($resql)) {
+				$columns[$obj->Field] = $obj->Type;
+			}
+		}
+
+		return $columns;
 	}
 }

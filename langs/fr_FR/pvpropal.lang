@@ -1,0 +1,44 @@
+# Fichier de traduction
+
+# Générique
+ModulePvPropalName = PvPropal
+ModulePvPropalDesc = Description du module PvPropal
+PvPropalSetup = Configuration PvPropal
+Settings = Paramètres
+PvPropalSetupPage = Page de configuration PvPropal
+NewSection = Nouvelle section
+PVPROPAL_MYPARAM1 = Mon paramètre 1
+PVPROPAL_MYPARAM1Tooltip = Info-bulle paramètre 1
+PVPROPAL_MYPARAM2 = Mon paramètre 2
+PVPROPAL_MYPARAM2Tooltip = Info-bulle paramètre 2
+
+# À propos
+About = À propos
+PvPropalAbout = À propos de PvPropal
+PvPropalAboutPage = Page à propos de PvPropal
+
+# Exemple
+PvPropalArea = Accueil PvPropal
+MyPageName = Nom de ma page
+
+# Widget exemple
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget
+
+# Champs PvPropal
+ExtraProductPvPeakPower = Puissance crête module PV (Wc)
+ExtraProductPvPeakPowerHelp = Puissance crête du module photovoltaïque exprimée en watt-crête. Visible uniquement pour les modules PV.
+ExtraProposalPvTotalPower = Puissance crête PV totale (Wc)
+ExtraProposalPvTotalPowerHelp = Somme des puissances crêtes (quantité × puissance unitaire) pour tous les produits PV de la proposition.
+ExtraProposalPvSalePerWc = Prix de vente par watt-crête
+ExtraProposalPvSalePerWcHelp = Rapport entre le prix de vente total HT du devis et la puissance crête PV totale.
+ExtraProposalPvCostPerWc = Prix de revient par watt-crête
+ExtraProposalPvCostPerWcHelp = Rapport entre le prix de revient total HT du devis et la puissance crête PV totale.
+ExtraProposalPvMarginRate = Taux de marge (%)
+ExtraProposalPvMarginRateHelp = Marge exprimée en pourcentage du prix de vente.
+ExtraProposalPvMargin = Marge (€)
+ExtraProposalPvMarginHelp = Marge absolue en euros = prix de vente total moins prix d'achat total.
+ExtraProposalPvTargetMargin = Marge cible (€)
+ExtraProposalPvTargetMarginHelp = Marge cible calculée depuis le dictionnaire c_ppv_marge_cible_wc et la puissance PV totale.
+ExtraProposalPvTargetMarginRate = Taux de marge cible (%)
+ExtraProposalPvTargetMarginRateHelp = Marge cible exprimée en pourcentage du prix de vente.
