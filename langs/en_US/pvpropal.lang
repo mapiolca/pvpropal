@@ -1,0 +1,42 @@
+# Translation file
+
+#
+# Generic
+#
+
+# Module label 'ModulePvPropalName'
+ModulePvPropalName = PvPropal
+# Module description 'ModulePvPropalDesc'
+ModulePvPropalDesc = PvPropal description
+
+#
+# Admin page
+#
+PvPropalSetup = PvPropal setup
+Settings = Settings
+PvPropalSetupPage = PvPropal setup page
+NewSection=New section
+PVPROPAL_MYPARAM1 = My param 1
+PVPROPAL_MYPARAM1Tooltip = My param 1 tooltip
+PVPROPAL_MYPARAM2=My param 2
+PVPROPAL_MYPARAM2Tooltip=My param 2 tooltip
+
+
+#
+# About page
+#
+About = About
+PvPropalAbout = About PvPropal
+PvPropalAboutPage = PvPropal about page
+
+#
+# Sample page
+#
+PvPropalArea = Home PvPropal
+MyPageName = My page name
+
+#
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description
