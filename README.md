@@ -2,7 +2,8 @@
 
 ## Features
 
-Description of the module...
+- Gestion des indicateurs photovoltaïques dans les devis : puissance crête totale, ratios de vente/coût par Wc, marges et marges cibles.
+- Ajout d'un champ supplémentaire de puissance crête sur les produits photovoltaïques, alimentant automatiquement les devis.
 
 <!--
 ![Screenshot pvpropal](img/screenshot_pvpropal.png?raw=true "PvPropal"){imgmd}
