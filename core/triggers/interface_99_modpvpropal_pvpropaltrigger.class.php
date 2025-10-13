@@ -1,10 +1,27 @@
 <?php
+/* Copyright (C) 2025           Pierre Ardoin                         <developpeur@lesmetiersdubatiment.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 /*
-	* Trigger dedicated to PvPropal module / Déclencheur dédié au module PvPropal
-	*/
+ * Trigger dedicated to PvPropal module / Déclencheur dédié au module PvPropal
+ */
 
 require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
+// Load proposal class for parent refresh / Charger la classe proposition pour rafraîchir le parent
+require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 
 /**
 	* Trigger class for PvPropal / Classe de déclencheur pour PvPropal
@@ -67,11 +84,16 @@ class Interface99ModpvpropalPvpropaltrigger extends DolibarrTriggers
 		return 0;
 	}
 
-	if (!is_object($object) || $object->element !== 'propal') {
+	if (!is_object($object)) {
 		return 0;
 	}
 
-	$result = $this->updatePropalMetrics($object, $conf);
+	$propal = $this->resolvePropalFromObject($object);
+	if (!$propal) {
+		return 0;
+	}
+
+	$result = $this->updatePropalMetrics($propal, $conf);
 	if ($result < 0) {
 		return -1;
 	}
@@ -80,8 +102,32 @@ class Interface99ModpvpropalPvpropaltrigger extends DolibarrTriggers
 	}
 
 	/**
-		* Update proposal extra fields / Met à jour les champs supplémentaires de la proposition
-		*
+	 * Resolve the related proposal object / Détermine l'objet proposition associé
+	 *
+	 * @param CommonObject|CommonObjectLine $object Source trigger object / Objet source du déclencheur
+	 * @return Propal|null                          Loaded proposal or null / Proposition chargée ou nulle
+	 */
+	private function resolvePropalFromObject($object)
+	{
+		// Handle proposal objects directly / Gérer directement les objets proposition
+		if (!empty($object->element) && $object->element === 'propal') {
+			return $object;
+		}
+
+		// Fallback to proposal line to refresh parent / Repli sur la ligne de proposition pour rafraîchir le parent
+		if (!empty($object->element) && $object->element === 'propaldet' && !empty($object->fk_propal)) {
+			$propal = new Propal($this->db);
+			if ($propal->fetch((int) $object->fk_propal) > 0) {
+				return $propal;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Update proposal extra fields / Met à jour les champs supplémentaires de la proposition
+	 *
 		* @param Propal $object Proposal object / Objet proposition
 		* @param Conf   $conf   Dolibarr configuration / Configuration Dolibarr
 		* @return int              Status code / Code de statut
@@ -135,8 +181,8 @@ class Interface99ModpvpropalPvpropaltrigger extends DolibarrTriggers
 	if (method_exists($object, 'insertExtraFields')) {
 		$result = $object->insertExtraFields();
 		if ($result < 0) {
-		$this->error = $object->error;
-		return -1;
+			$this->error = $object->error;
+			return -1;
 		}
 	}
 
