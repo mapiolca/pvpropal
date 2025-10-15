@@ -1,8 +1,8 @@
 <?php
 /* Copyright (C) 2004-2018	Laurent Destailleur			<eldy@users.sourceforge.net>
- * Copyright (C) 2018-2019	Nicolas ZABOURI				<info@inovea-conseil.com>
- * Copyright (C) 2019-2024	Frédéric France				<frederic.france@free.fr>
- * Copyright (C) 2025		Pierre ARDOIN
+ * Copyright (C) 2018-2019     Nicolas ZABOURI                         <info@inovea-conseil.com>
+ * Copyright (C) 2019-2024     Frédéric France                         <frederic.france@free.fr>
+ * Copyright (C) 2025          Pierre ARDOIN
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -247,7 +247,7 @@ class modPvPropal extends DolibarrModules
 		 'tabhelp' => array(array('code' => $langs->trans('CodeTooltipHelp'), 'field2' => 'field2tooltip'), array('code' => $langs->trans('CodeTooltipHelp'), 'field2' => 'field2tooltip'), ...),
 		 );
 		 */
-               /* BEGIN MODULEBUILDER DICTIONARIES */
+		/* BEGIN MODULEBUILDER DICTIONARIES */
 		if (is_object($langs)) {
 			// Ensure dictionary strings are available for translations. (EN)
 			// Garantit que les chaînes du dictionnaire sont disponibles pour les traductions. (FR)
@@ -370,7 +370,7 @@ class modPvPropal extends DolibarrModules
 			'target' => '',
 			'user' => 2, // 0=Menu for internal users, 1=external users, 2=both
 		);
-		*/
+		 */
 		/* END MODULEBUILDER TOPMENU */
 
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
@@ -421,7 +421,7 @@ class modPvPropal extends DolibarrModules
 			'user' => 2,				                // 0=Menu for internal users, 1=external users, 2=both
 			'object' => 'MyObject'
 		);
-		*/
+		 */
 		/* END MODULEBUILDER LEFTMENU MYOBJECT */
 
 
@@ -526,12 +526,12 @@ class modPvPropal extends DolibarrModules
 		// Ensure new dictionary columns exist when upgrading from previous versions. (EN)
 		// Garantit la présence des nouvelles colonnes du dictionnaire lors des montées de version. (FR)
 		$tableName = $this->db->prefix().'c_pvpanel_spec';
-		if (!$this->db->DDLFieldExists($tableName, 'feature_type')) {
+		if (!$this->pvpropalColumnExists($tableName, 'feature_type')) {
 			// Add the classification column with a safe default value. (EN)
 			// Ajoute la colonne de classification avec une valeur par défaut sûre. (FR)
 			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN feature_type integer NOT NULL DEFAULT 1";
 		}
-		if (!$this->db->DDLFieldExists($tableName, 'position')) {
+		if (!$this->pvpropalColumnExists($tableName, 'position')) {
 			// Add the ordering column with a safe default value. (EN)
 			// Ajoute la colonne d'ordonnancement avec une valeur par défaut sûre. (FR)
 			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN position integer NOT NULL DEFAULT 1";
@@ -612,6 +612,49 @@ class modPvPropal extends DolibarrModules
 		}
 
 		return $this->_init($sql, $options);
+	}
+
+	/**
+	 * Check if a column exists in the given table with backward compatibility. (EN)
+	 * Vérifie l'existence d'une colonne dans la table avec rétrocompatibilité. (FR)
+	 *
+	 * @param string $tableName Name of the table. (EN) / Nom de la table. (FR)
+	 * @param string $columnName Name of the column. (EN) / Nom de la colonne. (FR)
+	 *
+	 * @return bool True if the column exists, otherwise false. (EN) / Vrai si la colonne existe, sinon faux. (FR)
+	 */
+	protected function pvpropalColumnExists($tableName, $columnName)
+	{
+		// Delegate to the native Dolibarr helper when it is available. (EN)
+		// Délègue à l'assistant Dolibarr natif lorsqu'il est disponible. (FR)
+		if (method_exists($this->db, 'DDLFieldExists')) {
+			return $this->db->DDLFieldExists($tableName, $columnName);
+		}
+
+		// Build a portable query against the information schema. (EN)
+		// Construit une requête portable vers l'information schema. (FR)
+		$sanitizedTable = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
+		if ($sanitizedTable !== $tableName || $sanitizedTable === '') {
+			return false;
+		}
+		$escapedColumn = $this->db->escape($columnName);
+		$schemaCondition = '';
+		if (property_exists($this->db, 'schema') && !empty($this->db->schema)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->schema)."'";
+		} elseif (property_exists($this->db, 'database_name') && !empty($this->db->database_name)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->database_name)."'";
+		}
+		$sql = "SELECT 1 FROM information_schema.columns WHERE table_name = '".$this->db->escape($sanitizedTable)."' AND column_name = '".$escapedColumn."'".$schemaCondition." LIMIT 1";
+
+		$result = $this->db->query($sql);
+		if (!$result) {
+			return false;
+		}
+
+		$exists = ($this->db->num_rows($result) > 0);
+		$this->db->free($result);
+
+		return $exists;
 	}
 
 	/**
