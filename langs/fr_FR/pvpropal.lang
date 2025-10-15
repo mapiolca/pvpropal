@@ -1,0 +1,15 @@
+# Fichier de traduction
+
+#
+# Générique
+#
+ModulePvPropalName = PvPropal
+ModulePvPropalDesc = Description PvPropal
+
+#
+# Dictionnaires
+DictionaryPvPanelSpec = Dictionnaire des spécifications de panneaux PV
+DictionaryPvPanelSpecHelpCode = Choisissez un code sans caractères spéciaux.
+DictionaryPvPanelSpecHelpLabel = Indiquez une clé de traduction ou une valeur par défaut.
+DictionaryPvPanelSpecHelpUnit = Sélectionnez l'unité de mesure pour la valeur.
+DictionaryPvPanelSpecHelpActive = Activez ou désactivez la ligne du dictionnaire.

@@ -3,6 +3,7 @@
 ## Features
 
 Description of the module...
+- Dictionnaire des spécifications de panneaux photovoltaïques.
 
 <!--
 ![Screenshot pvpropal](img/screenshot_pvpropal.png?raw=true "PvPropal"){imgmd}

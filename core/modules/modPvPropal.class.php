@@ -248,7 +248,34 @@ class modPvPropal extends DolibarrModules
 		 );
 		 */
 		/* BEGIN MODULEBUILDER DICTIONARIES */
-		$this->dictionaries = array();
+		if (is_object($langs)) {
+		// Ensure dictionary strings are available for translations. (EN)
+		// Garantit que les chaînes du dictionnaire sont disponibles pour les traductions. (FR)
+		$langs->loadLangs($this->langfiles);
+		}
+		// Prepare dictionary tooltips for the user interface. (EN)
+		// Prépare les info-bulles du dictionnaire pour l'interface utilisateur. (FR)
+		$dictionaryPvPanelSpecHelp = array(
+		'code' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpCode') : 'Choose a code without special characters.',
+		'label' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpLabel') : 'Provide a translation key or fallback label.',
+		'unit' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpUnit') : 'Select the measurement unit for the value.',
+		'active' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpActive') : 'Enable or disable the dictionary line.'
+		);
+		// Share translated tooltips with dictionary definition. (EN)
+		// Partage les info-bulles traduites avec la définition du dictionnaire. (FR)
+		$this->dictionaries = array(
+		'langs' => 'pvpropal@pvpropal',
+		'tabname' => array(MAIN_DB_PREFIX.'c_pvpanel_spec'),
+		'tablib' => array('DictionaryPvPanelSpec'),
+		'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
+		'tabsqlsort' => array('t.label ASC'),
+		'tabfield' => array('code,label,unit,active'),
+		'tabfieldvalue' => array('code,label,unit,active'),
+		'tabfieldinsert' => array('entity,code,label,unit,active'),
+		'tabrowid' => array('rowid'),
+		'tabcond' => array(isModEnabled('pvpropal')),
+		'tabhelp' => array($dictionaryPvPanelSpecHelp)
+		);
 		/* END MODULEBUILDER DICTIONARIES */
 
 		// Boxes/Widgets

@@ -2,4 +2,5 @@
 
 ## 1.0
 
-Initial version
+- Initial version
+- Ajout du dictionnaire des spécifications de panneaux photovoltaïques

@@ -40,3 +40,10 @@ MyPageName = My page name
 #
 MyWidget = My widget
 MyWidgetDescription = My widget description
+#
+# Dictionaries
+DictionaryPvPanelSpec = PV panel specification dictionary
+DictionaryPvPanelSpecHelpCode = Choose a code without special characters.
+DictionaryPvPanelSpecHelpLabel = Provide a translation key or fallback label.
+DictionaryPvPanelSpecHelpUnit = Select the measurement unit for the value.
+DictionaryPvPanelSpecHelpActive = Enable or disable the dictionary line.
