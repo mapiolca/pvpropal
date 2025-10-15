@@ -7,6 +7,7 @@ Description of the module...
 - Préremplissage automatique du dictionnaire avec les caractéristiques standards.
 - Classification des spécifications par type et position pour un tri cohérent.
 - Mise à niveau automatique du dictionnaire pour ajouter les colonnes récentes et les valeurs ordonnées.
+- Enrichissement du dictionnaire avec les caractéristiques thermiques et de conditionnement par défaut.
 
 <!--
 ![Screenshot pvpropal](img/screenshot_pvpropal.png?raw=true "PvPropal"){imgmd}

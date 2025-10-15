@@ -280,7 +280,7 @@ class modPvPropal extends DolibarrModules
 			'tabcond' => array(isModEnabled('pvpropal')),
 			// Force feature type to use a controlled select and enforce numeric ordering. (EN)
 			// Force le type de caractéristiques à utiliser une liste contrôlée et impose un ordre numérique. (FR)
-			'tabfieldtype' => array('feature_type' => 'integer:select:1=DictionaryPvPanelSpecFeatureTypeTechnical,2=DictionaryPvPanelSpecFeatureTypeElectrical,3=DictionaryPvPanelSpecFeatureTypeStc,4=DictionaryPvPanelSpecFeatureTypeNmot', 'position' => 'integer'),
+			'tabfieldtype' => array('feature_type' => 'integer:select:1=DictionaryPvPanelSpecFeatureTypeTechnical,2=DictionaryPvPanelSpecFeatureTypeElectrical,3=DictionaryPvPanelSpecFeatureTypeStc,4=DictionaryPvPanelSpecFeatureTypeNmot,5=DictionaryPvPanelSpecFeatureTypeTemperature,6=DictionaryPvPanelSpecFeatureTypePackaging', 'position' => 'integer'),
 			'tabhelp' => array($dictionaryPvPanelSpecHelp)
 		);
 		/* END MODULEBUILDER DICTIONARIES */
@@ -563,6 +563,18 @@ class modPvPropal extends DolibarrModules
 			array('code' => 'nmot_vmp', 'label' => 'DictionaryPvPanelSpecNmotVmp', 'unit' => 'V', 'feature_type' => 4, 'position' => 21, 'active' => 1),
 			array('code' => 'nmot_isc', 'label' => 'DictionaryPvPanelSpecNmotIsc', 'unit' => 'A', 'feature_type' => 4, 'position' => 22, 'active' => 1),
 			array('code' => 'nmot_voc', 'label' => 'DictionaryPvPanelSpecNmotVoc', 'unit' => 'V', 'feature_type' => 4, 'position' => 23, 'active' => 1),
+			// Add default temperature characteristics specifications. (EN)
+			// Ajoute les spécifications thermiques par défaut. (FR)
+			array('code' => 'temperature_nmot', 'label' => 'DictionaryPvPanelSpecTemperatureNmot', 'unit' => '°C', 'feature_type' => 5, 'position' => 24, 'active' => 1),
+			array('code' => 'temperature_coeff_pmax', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffPmax', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 25, 'active' => 1),
+			array('code' => 'temperature_coeff_voc', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffVoc', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 26, 'active' => 1),
+			array('code' => 'temperature_coeff_isc', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffIsc', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 27, 'active' => 1),
+			// Add default packaging specifications. (EN)
+			// Ajoute les spécifications de conditionnement par défaut. (FR)
+			array('code' => 'packaging_container', 'label' => 'DictionaryPvPanelSpecPackagingContainer', 'unit' => '', 'feature_type' => 6, 'position' => 28, 'active' => 1),
+			array('code' => 'packaging_pallet_dimensions', 'label' => 'DictionaryPvPanelSpecPackagingPalletDimensions', 'unit' => 'mm', 'feature_type' => 6, 'position' => 29, 'active' => 1),
+			array('code' => 'packaging_pieces_per_pallet', 'label' => 'DictionaryPvPanelSpecPackagingPiecesPerPallet', 'unit' => 'pcs', 'feature_type' => 6, 'position' => 30, 'active' => 1),
+			array('code' => 'packaging_pieces_per_container', 'label' => 'DictionaryPvPanelSpecPackagingPiecesPerContainer', 'unit' => 'pcs', 'feature_type' => 6, 'position' => 31, 'active' => 1),
 		);
 		// Insert default dictionary entries while keeping multi-company isolation. (EN)
 		// Insère les entrées par défaut du dictionnaire en respectant l'isolation multi-sociétés. (FR)
