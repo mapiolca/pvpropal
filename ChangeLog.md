@@ -4,3 +4,4 @@
 
 - Initial version
 - Ajout du dictionnaire des spécifications de panneaux photovoltaïques
+- Préremplissage du dictionnaire PV avec les spécifications standards

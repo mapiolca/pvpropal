@@ -247,34 +247,34 @@ class modPvPropal extends DolibarrModules
 		 'tabhelp' => array(array('code' => $langs->trans('CodeTooltipHelp'), 'field2' => 'field2tooltip'), array('code' => $langs->trans('CodeTooltipHelp'), 'field2' => 'field2tooltip'), ...),
 		 );
 		 */
-		/* BEGIN MODULEBUILDER DICTIONARIES */
+               /* BEGIN MODULEBUILDER DICTIONARIES */
 		if (is_object($langs)) {
-		// Ensure dictionary strings are available for translations. (EN)
-		// Garantit que les chaînes du dictionnaire sont disponibles pour les traductions. (FR)
-		$langs->loadLangs($this->langfiles);
+			// Ensure dictionary strings are available for translations. (EN)
+			// Garantit que les chaînes du dictionnaire sont disponibles pour les traductions. (FR)
+			$langs->loadLangs($this->langfiles);
 		}
 		// Prepare dictionary tooltips for the user interface. (EN)
 		// Prépare les info-bulles du dictionnaire pour l'interface utilisateur. (FR)
 		$dictionaryPvPanelSpecHelp = array(
-		'code' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpCode') : 'Choose a code without special characters.',
-		'label' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpLabel') : 'Provide a translation key or fallback label.',
-		'unit' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpUnit') : 'Select the measurement unit for the value.',
-		'active' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpActive') : 'Enable or disable the dictionary line.'
+			'code' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpCode') : 'Choose a code without special characters.',
+			'label' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpLabel') : 'Provide a translation key or fallback label.',
+			'unit' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpUnit') : 'Select the measurement unit for the value.',
+			'active' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpActive') : 'Enable or disable the dictionary line.'
 		);
 		// Share translated tooltips with dictionary definition. (EN)
 		// Partage les info-bulles traduites avec la définition du dictionnaire. (FR)
 		$this->dictionaries = array(
-		'langs' => 'pvpropal@pvpropal',
-		'tabname' => array(MAIN_DB_PREFIX.'c_pvpanel_spec'),
-		'tablib' => array('DictionaryPvPanelSpec'),
-		'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
-		'tabsqlsort' => array('t.label ASC'),
-		'tabfield' => array('code,label,unit,active'),
-		'tabfieldvalue' => array('code,label,unit,active'),
-		'tabfieldinsert' => array('entity,code,label,unit,active'),
-		'tabrowid' => array('rowid'),
-		'tabcond' => array(isModEnabled('pvpropal')),
-		'tabhelp' => array($dictionaryPvPanelSpecHelp)
+			'langs' => 'pvpropal@pvpropal',
+			'tabname' => array(MAIN_DB_PREFIX.'c_pvpanel_spec'),
+			'tablib' => array('DictionaryPvPanelSpec'),
+			'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
+			'tabsqlsort' => array('t.label ASC'),
+			'tabfield' => array('code,label,unit,active'),
+			'tabfieldvalue' => array('code,label,unit,active'),
+			'tabfieldinsert' => array('entity,code,label,unit,active'),
+			'tabrowid' => array('rowid'),
+			'tabcond' => array(isModEnabled('pvpropal')),
+			'tabhelp' => array($dictionaryPvPanelSpecHelp)
 		);
 		/* END MODULEBUILDER DICTIONARIES */
 
@@ -516,6 +516,42 @@ class modPvPropal extends DolibarrModules
 		$this->remove($options);
 
 		$sql = array();
+		// Define default PV panel specifications for dictionary seeding. (EN)
+		// Définit les spécifications PV par défaut pour l'initialisation du dictionnaire. (FR)
+		$defaultPvPanelSpecEntries = array(
+			array('code' => 'cell_type', 'label' => 'DictionaryPvPanelSpecCellType', 'unit' => '', 'active' => 1),
+			array('code' => 'cell_quantity', 'label' => 'DictionaryPvPanelSpecCellQuantity', 'unit' => 'pcs', 'active' => 1),
+			array('code' => 'front_cover', 'label' => 'DictionaryPvPanelSpecFrontCover', 'unit' => '', 'active' => 1),
+			array('code' => 'rear_cover', 'label' => 'DictionaryPvPanelSpecRearCover', 'unit' => '', 'active' => 1),
+			array('code' => 'junction_box', 'label' => 'DictionaryPvPanelSpecJunctionBox', 'unit' => '', 'active' => 1),
+			array('code' => 'cables_section', 'label' => 'DictionaryPvPanelSpecCablesSection', 'unit' => 'mm²', 'active' => 1),
+			array('code' => 'cable_length_portrait_positive', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitPositive', 'unit' => 'mm', 'active' => 1),
+			array('code' => 'cable_length_portrait_negative', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitNegative', 'unit' => 'mm', 'active' => 1),
+			array('code' => 'cable_length_landscape_positive', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapePositive', 'unit' => 'mm', 'active' => 1),
+			array('code' => 'cable_length_landscape_negative', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapeNegative', 'unit' => 'mm', 'active' => 1),
+			array('code' => 'length_customizable', 'label' => 'DictionaryPvPanelSpecLengthCustomizable', 'unit' => '', 'active' => 1),
+			array('code' => 'connector_type', 'label' => 'DictionaryPvPanelSpecConnectorType', 'unit' => '', 'active' => 1),
+			array('code' => 'stc_pmax', 'label' => 'DictionaryPvPanelSpecStcPmax', 'unit' => 'W', 'active' => 1),
+			array('code' => 'stc_imp', 'label' => 'DictionaryPvPanelSpecStcImp', 'unit' => 'A', 'active' => 1),
+			array('code' => 'stc_vmp', 'label' => 'DictionaryPvPanelSpecStcVmp', 'unit' => 'V', 'active' => 1),
+			array('code' => 'stc_isc', 'label' => 'DictionaryPvPanelSpecStcIsc', 'unit' => 'A', 'active' => 1),
+			array('code' => 'stc_voc', 'label' => 'DictionaryPvPanelSpecStcVoc', 'unit' => 'V', 'active' => 1),
+			array('code' => 'stc_efficiency', 'label' => 'DictionaryPvPanelSpecStcEfficiency', 'unit' => '%', 'active' => 1),
+			array('code' => 'nmot_pmax', 'label' => 'DictionaryPvPanelSpecNmotPmax', 'unit' => 'W', 'active' => 1),
+			array('code' => 'nmot_imp', 'label' => 'DictionaryPvPanelSpecNmotImp', 'unit' => 'A', 'active' => 1),
+			array('code' => 'nmot_vmp', 'label' => 'DictionaryPvPanelSpecNmotVmp', 'unit' => 'V', 'active' => 1),
+			array('code' => 'nmot_isc', 'label' => 'DictionaryPvPanelSpecNmotIsc', 'unit' => 'A', 'active' => 1),
+			array('code' => 'nmot_voc', 'label' => 'DictionaryPvPanelSpecNmotVoc', 'unit' => 'V', 'active' => 1)
+		);
+		// Insert default dictionary entries while keeping multi-company isolation. (EN)
+		// Insère les entrées par défaut du dictionnaire en respectant l'isolation multi-sociétés. (FR)
+		foreach ($defaultPvPanelSpecEntries as $dictionaryEntry) {
+			$code = $this->db->escape($dictionaryEntry['code']);
+			$label = $this->db->escape($dictionaryEntry['label']);
+			$unit = $this->db->escape($dictionaryEntry['unit']);
+			$active = (int) $dictionaryEntry['active'];
+			$sql[] = "INSERT INTO ".$this->db->prefix()."c_pvpanel_spec (entity, code, label, unit, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_pvpanel_spec WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
+		}
 
 		// Document templates
 		$moduledir = dol_sanitizeFileName('pvpropal');
