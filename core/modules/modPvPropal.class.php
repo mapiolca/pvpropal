@@ -523,6 +523,20 @@ class modPvPropal extends DolibarrModules
 		$this->remove($options);
 
 		$sql = array();
+		// Ensure new dictionary columns exist when upgrading from previous versions. (EN)
+		// Garantit la présence des nouvelles colonnes du dictionnaire lors des montées de version. (FR)
+		$tableName = $this->db->prefix().'c_pvpanel_spec';
+		if (!$this->db->DDLFieldExists($tableName, 'feature_type')) {
+			// Add the classification column with a safe default value. (EN)
+			// Ajoute la colonne de classification avec une valeur par défaut sûre. (FR)
+			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN feature_type integer NOT NULL DEFAULT 1";
+		}
+		if (!$this->db->DDLFieldExists($tableName, 'position')) {
+			// Add the ordering column with a safe default value. (EN)
+			// Ajoute la colonne d'ordonnancement avec une valeur par défaut sûre. (FR)
+			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN position integer NOT NULL DEFAULT 1";
+		}
+
 		// Define default PV panel specifications for dictionary seeding. (EN)
 		// Définit les spécifications PV par défaut pour l'initialisation du dictionnaire. (FR)
 		$defaultPvPanelSpecEntries = array(
@@ -559,11 +573,13 @@ class modPvPropal extends DolibarrModules
 			$featureType = (int) $dictionaryEntry['feature_type'];
 			$position = (int) $dictionaryEntry['position'];
 			$active = (int) $dictionaryEntry['active'];
+			// Update existing entries to inject the new metadata for upgrades. (EN)
+			// Met à jour les entrées existantes pour injecter les nouvelles métadonnées lors des montées de version. (FR)
+			$sql[] = "UPDATE ".$tableName." SET label = '".$label."', unit = '".$unit."', feature_type = ".$featureType.", position = ".$position.", active = ".$active." WHERE entity = ".((int) $conf->entity)." AND code = '".$code."'";
 			// Persist default specification with ordered classification metadata. (EN)
 			// Enregistre la spécification par défaut avec les métadonnées de classement ordonné. (FR)
-			$sql[] = "INSERT INTO ".$this->db->prefix()."c_pvpanel_spec (entity, code, label, unit, feature_type, position, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$featureType.", ".$position.", ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_pvpanel_spec WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
+			$sql[] = "INSERT INTO ".$tableName." (entity, code, label, unit, feature_type, position, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$featureType.", ".$position.", ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$tableName." WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
 		}
-
 		// Document templates
 		$moduledir = dol_sanitizeFileName('pvpropal');
 		$myTmpObjects = array();
