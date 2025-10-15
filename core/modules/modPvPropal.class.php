@@ -259,6 +259,8 @@ class modPvPropal extends DolibarrModules
 			'code' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpCode') : 'Choose a code without special characters.',
 			'label' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpLabel') : 'Provide a translation key or fallback label.',
 			'unit' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpUnit') : 'Select the measurement unit for the value.',
+			'feature_type' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpFeatureType') : 'Select the characteristics type from the list.',
+			'position' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpPosition') : 'Set the display order with a positive number.',
 			'active' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpActive') : 'Enable or disable the dictionary line.'
 		);
 		// Share translated tooltips with dictionary definition. (EN)
@@ -267,13 +269,18 @@ class modPvPropal extends DolibarrModules
 			'langs' => 'pvpropal@pvpropal',
 			'tabname' => array(MAIN_DB_PREFIX.'c_pvpanel_spec'),
 			'tablib' => array('DictionaryPvPanelSpec'),
-			'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
-			'tabsqlsort' => array('t.label ASC'),
-			'tabfield' => array('code,label,unit,active'),
-			'tabfieldvalue' => array('code,label,unit,active'),
-			'tabfieldinsert' => array('entity,code,label,unit,active'),
+			'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.feature_type, t.position, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
+			// Order specifications by position to respect manual ordering. (EN)
+			// Trie les spécifications par position pour respecter l'ordre défini manuellement. (FR)
+			'tabsqlsort' => array('t.position ASC, t.rowid ASC'),
+			'tabfield' => array('code,label,unit,feature_type,position,active'),
+			'tabfieldvalue' => array('code,label,unit,feature_type,position,active'),
+			'tabfieldinsert' => array('entity,code,label,unit,feature_type,position,active'),
 			'tabrowid' => array('rowid'),
 			'tabcond' => array(isModEnabled('pvpropal')),
+			// Force feature type to use a controlled select and enforce numeric ordering. (EN)
+			// Force le type de caractéristiques à utiliser une liste contrôlée et impose un ordre numérique. (FR)
+			'tabfieldtype' => array('feature_type' => 'integer:select:1=DictionaryPvPanelSpecFeatureTypeTechnical,2=DictionaryPvPanelSpecFeatureTypeElectrical,3=DictionaryPvPanelSpecFeatureTypeStc,4=DictionaryPvPanelSpecFeatureTypeNmot', 'position' => 'integer'),
 			'tabhelp' => array($dictionaryPvPanelSpecHelp)
 		);
 		/* END MODULEBUILDER DICTIONARIES */
@@ -519,29 +526,29 @@ class modPvPropal extends DolibarrModules
 		// Define default PV panel specifications for dictionary seeding. (EN)
 		// Définit les spécifications PV par défaut pour l'initialisation du dictionnaire. (FR)
 		$defaultPvPanelSpecEntries = array(
-			array('code' => 'cell_type', 'label' => 'DictionaryPvPanelSpecCellType', 'unit' => '', 'active' => 1),
-			array('code' => 'cell_quantity', 'label' => 'DictionaryPvPanelSpecCellQuantity', 'unit' => 'pcs', 'active' => 1),
-			array('code' => 'front_cover', 'label' => 'DictionaryPvPanelSpecFrontCover', 'unit' => '', 'active' => 1),
-			array('code' => 'rear_cover', 'label' => 'DictionaryPvPanelSpecRearCover', 'unit' => '', 'active' => 1),
-			array('code' => 'junction_box', 'label' => 'DictionaryPvPanelSpecJunctionBox', 'unit' => '', 'active' => 1),
-			array('code' => 'cables_section', 'label' => 'DictionaryPvPanelSpecCablesSection', 'unit' => 'mm²', 'active' => 1),
-			array('code' => 'cable_length_portrait_positive', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitPositive', 'unit' => 'mm', 'active' => 1),
-			array('code' => 'cable_length_portrait_negative', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitNegative', 'unit' => 'mm', 'active' => 1),
-			array('code' => 'cable_length_landscape_positive', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapePositive', 'unit' => 'mm', 'active' => 1),
-			array('code' => 'cable_length_landscape_negative', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapeNegative', 'unit' => 'mm', 'active' => 1),
-			array('code' => 'length_customizable', 'label' => 'DictionaryPvPanelSpecLengthCustomizable', 'unit' => '', 'active' => 1),
-			array('code' => 'connector_type', 'label' => 'DictionaryPvPanelSpecConnectorType', 'unit' => '', 'active' => 1),
-			array('code' => 'stc_pmax', 'label' => 'DictionaryPvPanelSpecStcPmax', 'unit' => 'W', 'active' => 1),
-			array('code' => 'stc_imp', 'label' => 'DictionaryPvPanelSpecStcImp', 'unit' => 'A', 'active' => 1),
-			array('code' => 'stc_vmp', 'label' => 'DictionaryPvPanelSpecStcVmp', 'unit' => 'V', 'active' => 1),
-			array('code' => 'stc_isc', 'label' => 'DictionaryPvPanelSpecStcIsc', 'unit' => 'A', 'active' => 1),
-			array('code' => 'stc_voc', 'label' => 'DictionaryPvPanelSpecStcVoc', 'unit' => 'V', 'active' => 1),
-			array('code' => 'stc_efficiency', 'label' => 'DictionaryPvPanelSpecStcEfficiency', 'unit' => '%', 'active' => 1),
-			array('code' => 'nmot_pmax', 'label' => 'DictionaryPvPanelSpecNmotPmax', 'unit' => 'W', 'active' => 1),
-			array('code' => 'nmot_imp', 'label' => 'DictionaryPvPanelSpecNmotImp', 'unit' => 'A', 'active' => 1),
-			array('code' => 'nmot_vmp', 'label' => 'DictionaryPvPanelSpecNmotVmp', 'unit' => 'V', 'active' => 1),
-			array('code' => 'nmot_isc', 'label' => 'DictionaryPvPanelSpecNmotIsc', 'unit' => 'A', 'active' => 1),
-			array('code' => 'nmot_voc', 'label' => 'DictionaryPvPanelSpecNmotVoc', 'unit' => 'V', 'active' => 1)
+			array('code' => 'cell_type', 'label' => 'DictionaryPvPanelSpecCellType', 'unit' => '', 'feature_type' => 1, 'position' => 1, 'active' => 1),
+			array('code' => 'cell_quantity', 'label' => 'DictionaryPvPanelSpecCellQuantity', 'unit' => 'pcs', 'feature_type' => 1, 'position' => 2, 'active' => 1),
+			array('code' => 'front_cover', 'label' => 'DictionaryPvPanelSpecFrontCover', 'unit' => '', 'feature_type' => 1, 'position' => 3, 'active' => 1),
+			array('code' => 'rear_cover', 'label' => 'DictionaryPvPanelSpecRearCover', 'unit' => '', 'feature_type' => 1, 'position' => 4, 'active' => 1),
+			array('code' => 'junction_box', 'label' => 'DictionaryPvPanelSpecJunctionBox', 'unit' => '', 'feature_type' => 1, 'position' => 5, 'active' => 1),
+			array('code' => 'cables_section', 'label' => 'DictionaryPvPanelSpecCablesSection', 'unit' => 'mm²', 'feature_type' => 2, 'position' => 6, 'active' => 1),
+			array('code' => 'cable_length_portrait_positive', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitPositive', 'unit' => 'mm', 'feature_type' => 2, 'position' => 7, 'active' => 1),
+			array('code' => 'cable_length_portrait_negative', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitNegative', 'unit' => 'mm', 'feature_type' => 2, 'position' => 8, 'active' => 1),
+			array('code' => 'cable_length_landscape_positive', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapePositive', 'unit' => 'mm', 'feature_type' => 2, 'position' => 9, 'active' => 1),
+			array('code' => 'cable_length_landscape_negative', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapeNegative', 'unit' => 'mm', 'feature_type' => 2, 'position' => 10, 'active' => 1),
+			array('code' => 'length_customizable', 'label' => 'DictionaryPvPanelSpecLengthCustomizable', 'unit' => '', 'feature_type' => 1, 'position' => 11, 'active' => 1),
+			array('code' => 'connector_type', 'label' => 'DictionaryPvPanelSpecConnectorType', 'unit' => '', 'feature_type' => 2, 'position' => 12, 'active' => 1),
+			array('code' => 'stc_pmax', 'label' => 'DictionaryPvPanelSpecStcPmax', 'unit' => 'W', 'feature_type' => 3, 'position' => 13, 'active' => 1),
+			array('code' => 'stc_imp', 'label' => 'DictionaryPvPanelSpecStcImp', 'unit' => 'A', 'feature_type' => 3, 'position' => 14, 'active' => 1),
+			array('code' => 'stc_vmp', 'label' => 'DictionaryPvPanelSpecStcVmp', 'unit' => 'V', 'feature_type' => 3, 'position' => 15, 'active' => 1),
+			array('code' => 'stc_isc', 'label' => 'DictionaryPvPanelSpecStcIsc', 'unit' => 'A', 'feature_type' => 3, 'position' => 16, 'active' => 1),
+			array('code' => 'stc_voc', 'label' => 'DictionaryPvPanelSpecStcVoc', 'unit' => 'V', 'feature_type' => 3, 'position' => 17, 'active' => 1),
+			array('code' => 'stc_efficiency', 'label' => 'DictionaryPvPanelSpecStcEfficiency', 'unit' => '%', 'feature_type' => 3, 'position' => 18, 'active' => 1),
+			array('code' => 'nmot_pmax', 'label' => 'DictionaryPvPanelSpecNmotPmax', 'unit' => 'W', 'feature_type' => 4, 'position' => 19, 'active' => 1),
+			array('code' => 'nmot_imp', 'label' => 'DictionaryPvPanelSpecNmotImp', 'unit' => 'A', 'feature_type' => 4, 'position' => 20, 'active' => 1),
+			array('code' => 'nmot_vmp', 'label' => 'DictionaryPvPanelSpecNmotVmp', 'unit' => 'V', 'feature_type' => 4, 'position' => 21, 'active' => 1),
+			array('code' => 'nmot_isc', 'label' => 'DictionaryPvPanelSpecNmotIsc', 'unit' => 'A', 'feature_type' => 4, 'position' => 22, 'active' => 1),
+			array('code' => 'nmot_voc', 'label' => 'DictionaryPvPanelSpecNmotVoc', 'unit' => 'V', 'feature_type' => 4, 'position' => 23, 'active' => 1),
 		);
 		// Insert default dictionary entries while keeping multi-company isolation. (EN)
 		// Insère les entrées par défaut du dictionnaire en respectant l'isolation multi-sociétés. (FR)
@@ -549,8 +556,12 @@ class modPvPropal extends DolibarrModules
 			$code = $this->db->escape($dictionaryEntry['code']);
 			$label = $this->db->escape($dictionaryEntry['label']);
 			$unit = $this->db->escape($dictionaryEntry['unit']);
+			$featureType = (int) $dictionaryEntry['feature_type'];
+			$position = (int) $dictionaryEntry['position'];
 			$active = (int) $dictionaryEntry['active'];
-			$sql[] = "INSERT INTO ".$this->db->prefix()."c_pvpanel_spec (entity, code, label, unit, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_pvpanel_spec WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
+			// Persist default specification with ordered classification metadata. (EN)
+			// Enregistre la spécification par défaut avec les métadonnées de classement ordonné. (FR)
+			$sql[] = "INSERT INTO ".$this->db->prefix()."c_pvpanel_spec (entity, code, label, unit, feature_type, position, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$featureType.", ".$position.", ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$this->db->prefix()."c_pvpanel_spec WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
 		}
 
 		// Document templates

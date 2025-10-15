@@ -46,7 +46,16 @@ DictionaryPvPanelSpec = PV panel specification dictionary
 DictionaryPvPanelSpecHelpCode = Choose a code without special characters.
 DictionaryPvPanelSpecHelpLabel = Provide a translation key or fallback label.
 DictionaryPvPanelSpecHelpUnit = Select the measurement unit for the value.
+DictionaryPvPanelSpecHelpFeatureType = Select the characteristics type from the list.
+DictionaryPvPanelSpecHelpPosition = Set the display order with a positive number.
 DictionaryPvPanelSpecHelpActive = Enable or disable the dictionary line.
+
+DictionaryPvPanelSpecFeatureType = Feature type
+DictionaryPvPanelSpecPosition = Position
+DictionaryPvPanelSpecFeatureTypeTechnical = Technical
+DictionaryPvPanelSpecFeatureTypeElectrical = Electrical
+DictionaryPvPanelSpecFeatureTypeStc = STC
+DictionaryPvPanelSpecFeatureTypeNmot = NMOT
 DictionaryPvPanelSpecCellType = Cell Type
 DictionaryPvPanelSpecCellQuantity = Cell Quantity
 DictionaryPvPanelSpecFrontCover = Front Cover

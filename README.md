@@ -5,6 +5,7 @@
 Description of the module...
 - Dictionnaire des spécifications de panneaux photovoltaïques.
 - Préremplissage automatique du dictionnaire avec les caractéristiques standards.
+- Classification des spécifications par type et position pour un tri cohérent.
 
 <!--
 ![Screenshot pvpropal](img/screenshot_pvpropal.png?raw=true "PvPropal"){imgmd}

@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS llx_c_pvpanel_spec (
 	code varchar(128) NOT NULL,
 	label varchar(255) NOT NULL,
 	unit varchar(64) NOT NULL,
+	feature_type integer NOT NULL DEFAULT 1,
+	position integer NOT NULL DEFAULT 1,
 	active integer NOT NULL DEFAULT 1,
 	tms timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=innodb;
