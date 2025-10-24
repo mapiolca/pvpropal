@@ -1,0 +1,58 @@
+# Fichier de traduction
+
+#
+# Générique
+#
+ModulePvPropalName = PvPropal
+ModulePvPropalDesc = Description PvPropal
+
+#
+# Dictionnaires
+DictionaryPvPanelSpec = Dictionnaire des spécifications de panneaux PV
+DictionaryPvPanelSpecHelpCode = Choisissez un code sans caractères spéciaux.
+DictionaryPvPanelSpecHelpLabel = Indiquez une clé de traduction ou une valeur par défaut.
+DictionaryPvPanelSpecHelpUnit = Sélectionnez l'unité de mesure pour la valeur.
+DictionaryPvPanelSpecHelpFeatureType = Sélectionnez le type de caractéristiques dans la liste.
+DictionaryPvPanelSpecHelpPosition = Définissez l'ordre d'affichage avec un nombre positif.
+DictionaryPvPanelSpecHelpActive = Activez ou désactivez la ligne du dictionnaire.
+
+DictionaryPvPanelSpecFeatureType = Type de caractéristiques
+DictionaryPvPanelSpecPosition = Position
+DictionaryPvPanelSpecFeatureTypeTechnical = Technique
+DictionaryPvPanelSpecFeatureTypeElectrical = Électriques
+DictionaryPvPanelSpecFeatureTypeStc = STC
+DictionaryPvPanelSpecFeatureTypeNmot = NMOT
+DictionaryPvPanelSpecFeatureTypeTemperature = Caractéristiques thermiques
+DictionaryPvPanelSpecFeatureTypePackaging = Conditionnement
+DictionaryPvPanelSpecCellType = Type de cellule
+DictionaryPvPanelSpecCellQuantity = Quantité de cellules
+DictionaryPvPanelSpecFrontCover = Revêtement avant
+DictionaryPvPanelSpecRearCover = Revêtement arrière
+DictionaryPvPanelSpecJunctionBox = Boîte de jonction
+DictionaryPvPanelSpecCablesSection = Section des câbles
+DictionaryPvPanelSpecCableLengthPortraitPositive = Longueur portrait du câble (Pôle +)
+DictionaryPvPanelSpecCableLengthPortraitNegative = Longueur portrait du câble (Pôle -)
+DictionaryPvPanelSpecCableLengthLandscapePositive = Longueur paysage du câble (Pôle +)
+DictionaryPvPanelSpecCableLengthLandscapeNegative = Longueur paysage du câble (Pôle -)
+DictionaryPvPanelSpecLengthCustomizable = Longueur personnalisable
+DictionaryPvPanelSpecConnectorType = Type de connecteur
+DictionaryPvPanelSpecStcPmax = Puissance maximale STC (Pmax)
+DictionaryPvPanelSpecStcImp = Courant de puissance maximale STC (Imp)
+DictionaryPvPanelSpecStcVmp = Tension de puissance maximale STC (Vmp)
+DictionaryPvPanelSpecStcIsc = Courant de court-circuit STC (Isc)
+DictionaryPvPanelSpecStcVoc = Tension à vide STC (Voc)
+DictionaryPvPanelSpecStcEfficiency = Rendement du module STC
+DictionaryPvPanelSpecNmotPmax = Puissance maximale NMOT (Pmax)
+DictionaryPvPanelSpecNmotImp = Courant de puissance maximale NMOT (Imp)
+DictionaryPvPanelSpecNmotVmp = Tension de puissance maximale NMOT (Vmp)
+DictionaryPvPanelSpecNmotIsc = Courant de court-circuit NMOT (Isc)
+DictionaryPvPanelSpecNmotVoc = Tension à vide NMOT (Voc)
+DictionaryPvPanelSpecTemperatureNmot = Température nominale de fonctionnement du module (NMOT)
+DictionaryPvPanelSpecTemperatureCoeffPmax = Coefficient de température du Pmax
+DictionaryPvPanelSpecTemperatureCoeffVoc = Coefficient de température du Voc
+DictionaryPvPanelSpecTemperatureCoeffIsc = Coefficient de température du Isc
+DictionaryPvPanelSpecPackagingContainer = Conteneur
+DictionaryPvPanelSpecPackagingPalletDimensions = Dimensions de la palette
+DictionaryPvPanelSpecPackagingPiecesPerPallet = Pièces par palette
+DictionaryPvPanelSpecPackagingPiecesPerContainer = Pièces par conteneur
+DictionaryProductNaturePhotovoltaicModule = Module photovoltaïque

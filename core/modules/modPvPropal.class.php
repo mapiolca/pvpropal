@@ -1,8 +1,8 @@
 <?php
 /* Copyright (C) 2004-2018	Laurent Destailleur			<eldy@users.sourceforge.net>
- * Copyright (C) 2018-2019	Nicolas ZABOURI				<info@inovea-conseil.com>
- * Copyright (C) 2019-2024	Frédéric France				<frederic.france@free.fr>
- * Copyright (C) 2025		Pierre ARDOIN
+ * Copyright (C) 2018-2019     Nicolas ZABOURI                         <info@inovea-conseil.com>
+ * Copyright (C) 2019-2024     Frédéric France                         <frederic.france@free.fr>
+ * Copyright (C) 2025          Pierre ARDOIN
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -248,7 +248,41 @@ class modPvPropal extends DolibarrModules
 		 );
 		 */
 		/* BEGIN MODULEBUILDER DICTIONARIES */
-		$this->dictionaries = array();
+		if (is_object($langs)) {
+			// Ensure dictionary strings are available for translations. (EN)
+			// Garantit que les chaînes du dictionnaire sont disponibles pour les traductions. (FR)
+			$langs->loadLangs($this->langfiles);
+		}
+		// Prepare dictionary tooltips for the user interface. (EN)
+		// Prépare les info-bulles du dictionnaire pour l'interface utilisateur. (FR)
+		$dictionaryPvPanelSpecHelp = array(
+			'code' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpCode') : 'Choose a code without special characters.',
+			'label' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpLabel') : 'Provide a translation key or fallback label.',
+			'unit' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpUnit') : 'Select the measurement unit for the value.',
+			'feature_type' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpFeatureType') : 'Select the characteristics type from the list.',
+			'position' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpPosition') : 'Set the display order with a positive number.',
+			'active' => is_object($langs) ? $langs->trans('DictionaryPvPanelSpecHelpActive') : 'Enable or disable the dictionary line.'
+		);
+		// Share translated tooltips with dictionary definition. (EN)
+		// Partage les info-bulles traduites avec la définition du dictionnaire. (FR)
+		$this->dictionaries = array(
+			'langs' => 'pvpropal@pvpropal',
+			'tabname' => array(MAIN_DB_PREFIX.'c_pvpanel_spec'),
+			'tablib' => array('DictionaryPvPanelSpec'),
+			'tabsql' => array('SELECT t.rowid, t.entity, t.code, t.label, t.unit, t.feature_type, t.position, t.active FROM '.MAIN_DB_PREFIX.'c_pvpanel_spec AS t WHERE t.entity IN ('.getEntity('pvpanel_spec').')'),
+			// Order specifications by position to respect manual ordering. (EN)
+			// Trie les spécifications par position pour respecter l'ordre défini manuellement. (FR)
+			'tabsqlsort' => array('t.position ASC, t.rowid ASC'),
+			'tabfield' => array('code,label,unit,feature_type,position,active'),
+			'tabfieldvalue' => array('code,label,unit,feature_type,position,active'),
+			'tabfieldinsert' => array('entity,code,label,unit,feature_type,position,active'),
+			'tabrowid' => array('rowid'),
+			'tabcond' => array(isModEnabled('pvpropal')),
+			// Force feature type to use a controlled select and enforce numeric ordering. (EN)
+			// Force le type de caractéristiques à utiliser une liste contrôlée et impose un ordre numérique. (FR)
+			'tabfieldtype' => array('feature_type' => 'integer:select:1=DictionaryPvPanelSpecFeatureTypeTechnical,2=DictionaryPvPanelSpecFeatureTypeElectrical,3=DictionaryPvPanelSpecFeatureTypeStc,4=DictionaryPvPanelSpecFeatureTypeNmot,5=DictionaryPvPanelSpecFeatureTypeTemperature,6=DictionaryPvPanelSpecFeatureTypePackaging', 'position' => 'integer'),
+			'tabhelp' => array($dictionaryPvPanelSpecHelp)
+		);
 		/* END MODULEBUILDER DICTIONARIES */
 
 		// Boxes/Widgets
@@ -336,7 +370,7 @@ class modPvPropal extends DolibarrModules
 			'target' => '',
 			'user' => 2, // 0=Menu for internal users, 1=external users, 2=both
 		);
-		*/
+		 */
 		/* END MODULEBUILDER TOPMENU */
 
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
@@ -387,7 +421,7 @@ class modPvPropal extends DolibarrModules
 			'user' => 2,				                // 0=Menu for internal users, 1=external users, 2=both
 			'object' => 'MyObject'
 		);
-		*/
+		 */
 		/* END MODULEBUILDER LEFTMENU MYOBJECT */
 
 
@@ -489,7 +523,148 @@ class modPvPropal extends DolibarrModules
 		$this->remove($options);
 
 		$sql = array();
+		// Ensure new dictionary columns exist when upgrading from previous versions. (EN)
+		// Garantit la présence des nouvelles colonnes du dictionnaire lors des montées de version. (FR)
+		$tableName = $this->db->prefix().'c_pvpanel_spec';
+		if (!$this->pvpropalColumnExists($tableName, 'feature_type')) {
+			// Add the classification column with a safe default value. (EN)
+			// Ajoute la colonne de classification avec une valeur par défaut sûre. (FR)
+			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN feature_type integer NOT NULL DEFAULT 1";
+		}
+		if (!$this->pvpropalColumnExists($tableName, 'position')) {
+			// Add the ordering column with a safe default value. (EN)
+			// Ajoute la colonne d'ordonnancement avec une valeur par défaut sûre. (FR)
+			$sql[] = 'ALTER TABLE '.$tableName." ADD COLUMN position integer NOT NULL DEFAULT 1";
+		}
 
+		// Define default PV panel specifications for dictionary seeding. (EN)
+		// Définit les spécifications PV par défaut pour l'initialisation du dictionnaire. (FR)
+		$defaultPvPanelSpecEntries = array(
+			array('code' => 'cell_type', 'label' => 'DictionaryPvPanelSpecCellType', 'unit' => '', 'feature_type' => 1, 'position' => 1, 'active' => 1),
+			array('code' => 'cell_quantity', 'label' => 'DictionaryPvPanelSpecCellQuantity', 'unit' => 'pcs', 'feature_type' => 1, 'position' => 2, 'active' => 1),
+			array('code' => 'front_cover', 'label' => 'DictionaryPvPanelSpecFrontCover', 'unit' => '', 'feature_type' => 1, 'position' => 3, 'active' => 1),
+			array('code' => 'rear_cover', 'label' => 'DictionaryPvPanelSpecRearCover', 'unit' => '', 'feature_type' => 1, 'position' => 4, 'active' => 1),
+			array('code' => 'junction_box', 'label' => 'DictionaryPvPanelSpecJunctionBox', 'unit' => '', 'feature_type' => 1, 'position' => 5, 'active' => 1),
+			array('code' => 'cables_section', 'label' => 'DictionaryPvPanelSpecCablesSection', 'unit' => 'mm²', 'feature_type' => 2, 'position' => 6, 'active' => 1),
+			array('code' => 'cable_length_portrait_positive', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitPositive', 'unit' => 'mm', 'feature_type' => 2, 'position' => 7, 'active' => 1),
+			array('code' => 'cable_length_portrait_negative', 'label' => 'DictionaryPvPanelSpecCableLengthPortraitNegative', 'unit' => 'mm', 'feature_type' => 2, 'position' => 8, 'active' => 1),
+			array('code' => 'cable_length_landscape_positive', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapePositive', 'unit' => 'mm', 'feature_type' => 2, 'position' => 9, 'active' => 1),
+			array('code' => 'cable_length_landscape_negative', 'label' => 'DictionaryPvPanelSpecCableLengthLandscapeNegative', 'unit' => 'mm', 'feature_type' => 2, 'position' => 10, 'active' => 1),
+			array('code' => 'length_customizable', 'label' => 'DictionaryPvPanelSpecLengthCustomizable', 'unit' => '', 'feature_type' => 1, 'position' => 11, 'active' => 1),
+			array('code' => 'connector_type', 'label' => 'DictionaryPvPanelSpecConnectorType', 'unit' => '', 'feature_type' => 2, 'position' => 12, 'active' => 1),
+			array('code' => 'stc_pmax', 'label' => 'DictionaryPvPanelSpecStcPmax', 'unit' => 'W', 'feature_type' => 3, 'position' => 13, 'active' => 1),
+			array('code' => 'stc_imp', 'label' => 'DictionaryPvPanelSpecStcImp', 'unit' => 'A', 'feature_type' => 3, 'position' => 14, 'active' => 1),
+			array('code' => 'stc_vmp', 'label' => 'DictionaryPvPanelSpecStcVmp', 'unit' => 'V', 'feature_type' => 3, 'position' => 15, 'active' => 1),
+			array('code' => 'stc_isc', 'label' => 'DictionaryPvPanelSpecStcIsc', 'unit' => 'A', 'feature_type' => 3, 'position' => 16, 'active' => 1),
+			array('code' => 'stc_voc', 'label' => 'DictionaryPvPanelSpecStcVoc', 'unit' => 'V', 'feature_type' => 3, 'position' => 17, 'active' => 1),
+			array('code' => 'stc_efficiency', 'label' => 'DictionaryPvPanelSpecStcEfficiency', 'unit' => '%', 'feature_type' => 3, 'position' => 18, 'active' => 1),
+			array('code' => 'nmot_pmax', 'label' => 'DictionaryPvPanelSpecNmotPmax', 'unit' => 'W', 'feature_type' => 4, 'position' => 19, 'active' => 1),
+			array('code' => 'nmot_imp', 'label' => 'DictionaryPvPanelSpecNmotImp', 'unit' => 'A', 'feature_type' => 4, 'position' => 20, 'active' => 1),
+			array('code' => 'nmot_vmp', 'label' => 'DictionaryPvPanelSpecNmotVmp', 'unit' => 'V', 'feature_type' => 4, 'position' => 21, 'active' => 1),
+			array('code' => 'nmot_isc', 'label' => 'DictionaryPvPanelSpecNmotIsc', 'unit' => 'A', 'feature_type' => 4, 'position' => 22, 'active' => 1),
+			array('code' => 'nmot_voc', 'label' => 'DictionaryPvPanelSpecNmotVoc', 'unit' => 'V', 'feature_type' => 4, 'position' => 23, 'active' => 1),
+			// Add default temperature characteristics specifications. (EN)
+			// Ajoute les spécifications thermiques par défaut. (FR)
+			array('code' => 'temperature_nmot', 'label' => 'DictionaryPvPanelSpecTemperatureNmot', 'unit' => '°C', 'feature_type' => 5, 'position' => 24, 'active' => 1),
+			array('code' => 'temperature_coeff_pmax', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffPmax', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 25, 'active' => 1),
+			array('code' => 'temperature_coeff_voc', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffVoc', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 26, 'active' => 1),
+			array('code' => 'temperature_coeff_isc', 'label' => 'DictionaryPvPanelSpecTemperatureCoeffIsc', 'unit' => '%/°C', 'feature_type' => 5, 'position' => 27, 'active' => 1),
+			// Add default packaging specifications. (EN)
+			// Ajoute les spécifications de conditionnement par défaut. (FR)
+			array('code' => 'packaging_container', 'label' => 'DictionaryPvPanelSpecPackagingContainer', 'unit' => '', 'feature_type' => 6, 'position' => 28, 'active' => 1),
+			array('code' => 'packaging_pallet_dimensions', 'label' => 'DictionaryPvPanelSpecPackagingPalletDimensions', 'unit' => 'mm', 'feature_type' => 6, 'position' => 29, 'active' => 1),
+			array('code' => 'packaging_pieces_per_pallet', 'label' => 'DictionaryPvPanelSpecPackagingPiecesPerPallet', 'unit' => 'pcs', 'feature_type' => 6, 'position' => 30, 'active' => 1),
+			array('code' => 'packaging_pieces_per_container', 'label' => 'DictionaryPvPanelSpecPackagingPiecesPerContainer', 'unit' => 'pcs', 'feature_type' => 6, 'position' => 31, 'active' => 1),
+		);
+		// Insert default dictionary entries while keeping multi-company isolation. (EN)
+		// Insère les entrées par défaut du dictionnaire en respectant l'isolation multi-sociétés. (FR)
+		foreach ($defaultPvPanelSpecEntries as $dictionaryEntry) {
+			$code = $this->db->escape($dictionaryEntry['code']);
+			$label = $this->db->escape($dictionaryEntry['label']);
+			$unit = $this->db->escape($dictionaryEntry['unit']);
+			$featureType = (int) $dictionaryEntry['feature_type'];
+			$position = (int) $dictionaryEntry['position'];
+			$active = (int) $dictionaryEntry['active'];
+			// Update existing entries to inject the new metadata for upgrades. (EN)
+			// Met à jour les entrées existantes pour injecter les nouvelles métadonnées lors des montées de version. (FR)
+			$sql[] = "UPDATE ".$tableName." SET label = '".$label."', unit = '".$unit."', feature_type = ".$featureType.", position = ".$position.", active = ".$active." WHERE entity = ".((int) $conf->entity)." AND code = '".$code."'";
+			// Persist default specification with ordered classification metadata. (EN)
+			// Enregistre la spécification par défaut avec les métadonnées de classement ordonné. (FR)
+			$sql[] = "INSERT INTO ".$tableName." (entity, code, label, unit, feature_type, position, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$featureType.", ".$position.", ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$tableName." WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
+		}
+		// Guarantee the presence of the photovoltaic module product nature. (EN)
+		// Garantit la présence de la nature de produit module photovoltaïque. (FR)
+		$natureTable = $this->db->prefix().'c_product_nature';
+		if ($this->pvpropalColumnExists($natureTable, 'code')) {
+			// Prepare the shared SQL fragments for updates and inserts. (EN)
+			// Prépare les fragments SQL partagés pour les mises à jour et insertions. (FR)
+			$natureColumns = array();
+			$natureValues = array();
+			$natureWhereParts = array();
+			$natureUpdateSet = array();
+			$natureCodeIdentifier = 'pv_module';
+			if ($this->pvpropalColumnIsNumeric($natureTable, 'code')) {
+				// Use a numeric fallback when the dictionary expects numeric codes. (EN)
+				// Utilise une valeur numérique de secours si le dictionnaire attend des codes numériques. (FR)
+				$numericCode = 1000;
+				$natureColumns[] = 'code';
+				$natureValues[] = (string) ((int) $numericCode);
+				$natureWhereParts[] = 'code = '.((int) $numericCode);
+			} else {
+				// Default to the textual code when the column accepts characters. (EN)
+				// Utilise le code textuel par défaut lorsque la colonne accepte des caractères. (FR)
+				$escapedNatureCode = $this->db->escape($natureCodeIdentifier);
+				$natureColumns[] = 'code';
+				$natureValues[] = '\''.$escapedNatureCode.'\'';
+				$natureWhereParts[] = "code = '".$escapedNatureCode."'";
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'label')) {
+				// Persist the translation key used for the label. (EN)
+				// Enregistre la clé de traduction utilisée pour le libellé. (FR)
+				$natureLabel = $this->db->escape('DictionaryProductNaturePhotovoltaicModule');
+				$natureColumns[] = 'label';
+				$natureValues[] = '\''.$natureLabel.'\'';
+				$natureUpdateSet[] = "label = '".$natureLabel."'";
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'entity')) {
+				// Scope the dictionary row to the current entity when possible. (EN)
+				// Limite la ligne du dictionnaire à l'entité courante lorsque possible. (FR)
+				$natureColumns[] = 'entity';
+				$natureValues[] = (string) ((int) $conf->entity);
+				$natureWhereParts[] = 'entity = '.((int) $conf->entity);
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'active')) {
+				// Ensure the photovoltaic module nature is enabled. (EN)
+				// S'assure que la nature module photovoltaïque est active. (FR)
+				$natureColumns[] = 'active';
+				$natureValues[] = '1';
+				$natureUpdateSet[] = 'active = 1';
+			}
+			$positionColumn = '';
+			if ($this->pvpropalColumnExists($natureTable, 'position')) {
+				$positionColumn = 'position';
+			} elseif ($this->pvpropalColumnExists($natureTable, 'sortorder')) {
+				$positionColumn = 'sortorder';
+			}
+			if ($positionColumn !== '') {
+				// Provide a default ordering for the photovoltaic module nature. (EN)
+				// Donne un ordre par défaut pour la nature module photovoltaïque. (FR)
+				$natureColumns[] = $positionColumn;
+				$natureValues[] = '1000';
+				$natureUpdateSet[] = $positionColumn.' = 1000';
+			}
+			$natureWhere = implode(' AND ', $natureWhereParts);
+			if ($natureWhere !== '' && !empty($natureUpdateSet)) {
+				// Update the existing nature when it is already present. (EN)
+				// Met à jour la nature existante lorsqu'elle est déjà présente. (FR)
+				$sql[] = 'UPDATE '.$natureTable.' SET '.implode(', ', $natureUpdateSet).' WHERE '.$natureWhere;
+			}
+			if ($natureWhere !== '' && !empty($natureColumns) && count($natureColumns) === count($natureValues)) {
+				// Insert the photovoltaic module nature if it is missing. (EN)
+				// Insère la nature module photovoltaïque si elle est absente. (FR)
+				$sql[] = 'INSERT INTO '.$natureTable.' ('.implode(', ', $natureColumns).') SELECT '.implode(', ', $natureValues).' WHERE NOT EXISTS (SELECT 1 FROM '.$natureTable.' WHERE '.$natureWhere.')';
+			}
+		}
 		// Document templates
 		$moduledir = dol_sanitizeFileName('pvpropal');
 		$myTmpObjects = array();
@@ -522,6 +697,111 @@ class modPvPropal extends DolibarrModules
 		}
 
 		return $this->_init($sql, $options);
+	}
+
+	/**
+	 * Check if a column exists in the given table with backward compatibility. (EN)
+	 * Vérifie l'existence d'une colonne dans la table avec rétrocompatibilité. (FR)
+	 *
+	 * @param string $tableName Name of the table. (EN) / Nom de la table. (FR)
+	 * @param string $columnName Name of the column. (EN) / Nom de la colonne. (FR)
+	 *
+	 * @return bool True if the column exists, otherwise false. (EN) / Vrai si la colonne existe, sinon faux. (FR)
+	 */
+	protected function pvpropalColumnExists($tableName, $columnName)
+	{
+		// Delegate to the native Dolibarr helper when it is available. (EN)
+		// Délègue à l'assistant Dolibarr natif lorsqu'il est disponible. (FR)
+		if (method_exists($this->db, 'DDLFieldExists')) {
+			return $this->db->DDLFieldExists($tableName, $columnName);
+		}
+
+		// Build a portable query against the information schema. (EN)
+		// Construit une requête portable vers l'information schema. (FR)
+		$sanitizedTable = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
+		if ($sanitizedTable !== $tableName || $sanitizedTable === '') {
+			return false;
+		}
+		$escapedColumn = $this->db->escape($columnName);
+		$schemaCondition = '';
+		if (property_exists($this->db, 'schema') && !empty($this->db->schema)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->schema)."'";
+		} elseif (property_exists($this->db, 'database_name') && !empty($this->db->database_name)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->database_name)."'";
+		}
+		$sql = "SELECT 1 FROM information_schema.columns WHERE table_name = '".$this->db->escape($sanitizedTable)."' AND column_name = '".$escapedColumn."'".$schemaCondition." LIMIT 1";
+
+		$result = $this->db->query($sql);
+		if (!$result) {
+			return false;
+		}
+
+		$exists = ($this->db->num_rows($result) > 0);
+		$this->db->free($result);
+
+		return $exists;
+	}
+
+	/**
+	 * Determine whether a column stores numeric values. (EN)
+	 * Détermine si une colonne stocke des valeurs numériques. (FR)
+	 *
+	 * @param string $tableName Name of the table. (EN) / Nom de la table. (FR)
+	 * @param string $columnName Name of the column. (EN) / Nom de la colonne. (FR)
+	 *
+	 * @return bool True when the column is numeric, otherwise false. (EN) / Vrai si la colonne est numérique, sinon faux. (FR)
+	 */
+	protected function pvpropalColumnIsNumeric($tableName, $columnName)
+	{
+		// Reuse the existence check to avoid querying missing metadata. (EN)
+		// Réutilise la vérification d'existence pour éviter d'interroger une métadonnée manquante. (FR)
+		if (!$this->pvpropalColumnExists($tableName, $columnName)) {
+			return false;
+		}
+
+		$sanitizedTable = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
+		if ($sanitizedTable !== $tableName || $sanitizedTable === '') {
+			return false;
+		}
+
+		$escapedColumn = $this->db->escape($columnName);
+		$schemaCondition = '';
+		if (property_exists($this->db, 'schema') && !empty($this->db->schema)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->schema)."'";
+		} elseif (property_exists($this->db, 'database_name') && !empty($this->db->database_name)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->database_name)."'";
+		}
+
+		$sql = "SELECT data_type, column_type FROM information_schema.columns WHERE table_name = '".$this->db->escape($sanitizedTable)."' AND column_name = '".$escapedColumn."'".$schemaCondition." LIMIT 1";
+		$result = $this->db->query($sql);
+		if (!$result) {
+			return false;
+		}
+
+		$row = $this->db->fetch_object($result);
+		$this->db->free($result);
+		if (!$row) {
+			return false;
+		}
+
+		$numericTypes = array('int', 'integer', 'tinyint', 'smallint', 'mediumint', 'bigint', 'decimal', 'numeric', 'float', 'double', 'real', 'double precision');
+		$typeCandidates = array();
+		if (!empty($row->data_type)) {
+			$typeCandidates[] = strtolower($row->data_type);
+		}
+		if (!empty($row->column_type)) {
+			$typeCandidates[] = strtolower($row->column_type);
+		}
+
+		foreach ($typeCandidates as $typeCandidate) {
+			foreach ($numericTypes as $numericType) {
+				if ($typeCandidate === $numericType || strpos($typeCandidate, $numericType.'(') === 0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
