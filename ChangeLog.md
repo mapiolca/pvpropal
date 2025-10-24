@@ -10,3 +10,4 @@
 - Compatibilité de la mise à niveau du dictionnaire PV sans dépendre de DDLFieldExists.
 - Ajout du préremplissage des caractéristiques thermiques et de conditionnement dans le dictionnaire PV.
 - Ajout automatique de la nature de produit Module Photovoltaïque lors de l'activation du module.
+- Sécurisation de la création de la nature de produit pour les dictionnaires utilisant des codes numériques.

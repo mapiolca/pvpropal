@@ -9,6 +9,7 @@ Description of the module...
 - Mise à niveau automatique du dictionnaire pour ajouter les colonnes récentes et les valeurs ordonnées.
 - Enrichissement du dictionnaire avec les caractéristiques thermiques et de conditionnement par défaut.
 - Création automatique de la nature de produit Module Photovoltaïque à l'activation.
+- Prise en charge des dictionnaires de natures de produit dont le code est numérique.
 
 <!--
 ![Screenshot pvpropal](img/screenshot_pvpropal.png?raw=true "PvPropal"){imgmd}

@@ -595,42 +595,76 @@ class modPvPropal extends DolibarrModules
 		// Guarantee the presence of the photovoltaic module product nature. (EN)
 		// Garantit la présence de la nature de produit module photovoltaïque. (FR)
 		$natureTable = $this->db->prefix().'c_product_nature';
-		$natureCode = $this->db->escape('pv_module');
-		$natureLabel = $this->db->escape('DictionaryProductNaturePhotovoltaicModule');
-		$natureWhereParts = array("code = '".$natureCode."'");
-		$natureColumns = array('code');
-		$natureValues = array("'".$natureCode."'");
-		$natureUpdateSet = array("label = '".$natureLabel."'");
-		if ($this->pvpropalColumnExists($natureTable, 'entity')) {
-			// Scope the dictionary row to the current entity when possible. (EN)
-			// Limite la ligne du dictionnaire à l'entité courante lorsque possible. (FR)
-			$natureWhereParts[] = 'entity = '.((int) $conf->entity);
-			$natureColumns[] = 'entity';
-			$natureValues[] = (int) $conf->entity;
+		if ($this->pvpropalColumnExists($natureTable, 'code')) {
+			// Prepare the shared SQL fragments for updates and inserts. (EN)
+			// Prépare les fragments SQL partagés pour les mises à jour et insertions. (FR)
+			$natureColumns = array();
+			$natureValues = array();
+			$natureWhereParts = array();
+			$natureUpdateSet = array();
+			$natureCodeIdentifier = 'pv_module';
+			if ($this->pvpropalColumnIsNumeric($natureTable, 'code')) {
+				// Use a numeric fallback when the dictionary expects numeric codes. (EN)
+				// Utilise une valeur numérique de secours si le dictionnaire attend des codes numériques. (FR)
+				$numericCode = 1000;
+				$natureColumns[] = 'code';
+				$natureValues[] = (string) ((int) $numericCode);
+				$natureWhereParts[] = 'code = '.((int) $numericCode);
+			} else {
+				// Default to the textual code when the column accepts characters. (EN)
+				// Utilise le code textuel par défaut lorsque la colonne accepte des caractères. (FR)
+				$escapedNatureCode = $this->db->escape($natureCodeIdentifier);
+				$natureColumns[] = 'code';
+				$natureValues[] = '\''.$escapedNatureCode.'\'';
+				$natureWhereParts[] = "code = '".$escapedNatureCode."'";
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'label')) {
+				// Persist the translation key used for the label. (EN)
+				// Enregistre la clé de traduction utilisée pour le libellé. (FR)
+				$natureLabel = $this->db->escape('DictionaryProductNaturePhotovoltaicModule');
+				$natureColumns[] = 'label';
+				$natureValues[] = '\''.$natureLabel.'\'';
+				$natureUpdateSet[] = "label = '".$natureLabel."'";
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'entity')) {
+				// Scope the dictionary row to the current entity when possible. (EN)
+				// Limite la ligne du dictionnaire à l'entité courante lorsque possible. (FR)
+				$natureColumns[] = 'entity';
+				$natureValues[] = (string) ((int) $conf->entity);
+				$natureWhereParts[] = 'entity = '.((int) $conf->entity);
+			}
+			if ($this->pvpropalColumnExists($natureTable, 'active')) {
+				// Ensure the photovoltaic module nature is enabled. (EN)
+				// S'assure que la nature module photovoltaïque est active. (FR)
+				$natureColumns[] = 'active';
+				$natureValues[] = '1';
+				$natureUpdateSet[] = 'active = 1';
+			}
+			$positionColumn = '';
+			if ($this->pvpropalColumnExists($natureTable, 'position')) {
+				$positionColumn = 'position';
+			} elseif ($this->pvpropalColumnExists($natureTable, 'sortorder')) {
+				$positionColumn = 'sortorder';
+			}
+			if ($positionColumn !== '') {
+				// Provide a default ordering for the photovoltaic module nature. (EN)
+				// Donne un ordre par défaut pour la nature module photovoltaïque. (FR)
+				$natureColumns[] = $positionColumn;
+				$natureValues[] = '1000';
+				$natureUpdateSet[] = $positionColumn.' = 1000';
+			}
+			$natureWhere = implode(' AND ', $natureWhereParts);
+			if ($natureWhere !== '' && !empty($natureUpdateSet)) {
+				// Update the existing nature when it is already present. (EN)
+				// Met à jour la nature existante lorsqu'elle est déjà présente. (FR)
+				$sql[] = 'UPDATE '.$natureTable.' SET '.implode(', ', $natureUpdateSet).' WHERE '.$natureWhere;
+			}
+			if ($natureWhere !== '' && !empty($natureColumns) && count($natureColumns) === count($natureValues)) {
+				// Insert the photovoltaic module nature if it is missing. (EN)
+				// Insère la nature module photovoltaïque si elle est absente. (FR)
+				$sql[] = 'INSERT INTO '.$natureTable.' ('.implode(', ', $natureColumns).') SELECT '.implode(', ', $natureValues).' WHERE NOT EXISTS (SELECT 1 FROM '.$natureTable.' WHERE '.$natureWhere.')';
+			}
 		}
-		if ($this->pvpropalColumnExists($natureTable, 'active')) {
-			// Ensure the photovoltaic module nature is enabled. (EN)
-			// S'assure que la nature module photovoltaïque est active. (FR)
-			$natureUpdateSet[] = 'active = 1';
-			$natureColumns[] = 'active';
-			$natureValues[] = 1;
-		}
-		$positionColumn = '';
-		if ($this->pvpropalColumnExists($natureTable, 'position')) {
-			$positionColumn = 'position';
-		} elseif ($this->pvpropalColumnExists($natureTable, 'sortorder')) {
-			$positionColumn = 'sortorder';
-		}
-		if ($positionColumn !== '') {
-			// Provide a default ordering for the photovoltaic module nature. (EN)
-			// Donne un ordre par défaut pour la nature module photovoltaïque. (FR)
-			$natureUpdateSet[] = $positionColumn.' = 1000';
-			$natureColumns[] = $positionColumn;
-			$natureValues[] = 1000;
-		}
-		$natureWhere = implode(' AND ', $natureWhereParts);
-		$sql[] = 'UPDATE '.$natureTable.' SET '.implode(', ', $natureUpdateSet).' WHERE '.$natureWhere;
-		$sql[] = 'INSERT INTO '.$natureTable.' ('.implode(', ', $natureColumns).') SELECT '.implode(', ', $natureValues).' WHERE NOT EXISTS (SELECT 1 FROM '.$natureTable.' WHERE '.$natureWhere.')';
 		// Document templates
 		$moduledir = dol_sanitizeFileName('pvpropal');
 		$myTmpObjects = array();
@@ -706,6 +740,68 @@ class modPvPropal extends DolibarrModules
 		$this->db->free($result);
 
 		return $exists;
+	}
+
+	/**
+	 * Determine whether a column stores numeric values. (EN)
+	 * Détermine si une colonne stocke des valeurs numériques. (FR)
+	 *
+	 * @param string $tableName Name of the table. (EN) / Nom de la table. (FR)
+	 * @param string $columnName Name of the column. (EN) / Nom de la colonne. (FR)
+	 *
+	 * @return bool True when the column is numeric, otherwise false. (EN) / Vrai si la colonne est numérique, sinon faux. (FR)
+	 */
+	protected function pvpropalColumnIsNumeric($tableName, $columnName)
+	{
+		// Reuse the existence check to avoid querying missing metadata. (EN)
+		// Réutilise la vérification d'existence pour éviter d'interroger une métadonnée manquante. (FR)
+		if (!$this->pvpropalColumnExists($tableName, $columnName)) {
+			return false;
+		}
+
+		$sanitizedTable = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
+		if ($sanitizedTable !== $tableName || $sanitizedTable === '') {
+			return false;
+		}
+
+		$escapedColumn = $this->db->escape($columnName);
+		$schemaCondition = '';
+		if (property_exists($this->db, 'schema') && !empty($this->db->schema)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->schema)."'";
+		} elseif (property_exists($this->db, 'database_name') && !empty($this->db->database_name)) {
+			$schemaCondition = " AND table_schema = '".$this->db->escape($this->db->database_name)."'";
+		}
+
+		$sql = "SELECT data_type, column_type FROM information_schema.columns WHERE table_name = '".$this->db->escape($sanitizedTable)."' AND column_name = '".$escapedColumn."'".$schemaCondition." LIMIT 1";
+		$result = $this->db->query($sql);
+		if (!$result) {
+			return false;
+		}
+
+		$row = $this->db->fetch_object($result);
+		$this->db->free($result);
+		if (!$row) {
+			return false;
+		}
+
+		$numericTypes = array('int', 'integer', 'tinyint', 'smallint', 'mediumint', 'bigint', 'decimal', 'numeric', 'float', 'double', 'real', 'double precision');
+		$typeCandidates = array();
+		if (!empty($row->data_type)) {
+			$typeCandidates[] = strtolower($row->data_type);
+		}
+		if (!empty($row->column_type)) {
+			$typeCandidates[] = strtolower($row->column_type);
+		}
+
+		foreach ($typeCandidates as $typeCandidate) {
+			foreach ($numericTypes as $numericType) {
+				if ($typeCandidate === $numericType || strpos($typeCandidate, $numericType.'(') === 0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
