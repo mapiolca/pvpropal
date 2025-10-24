@@ -89,3 +89,4 @@ DictionaryPvPanelSpecPackagingContainer = Container
 DictionaryPvPanelSpecPackagingPalletDimensions = Pallet Dimensions
 DictionaryPvPanelSpecPackagingPiecesPerPallet = Pieces per Pallet
 DictionaryPvPanelSpecPackagingPiecesPerContainer = Pieces per Container
+DictionaryProductNaturePhotovoltaicModule = Module Photovoltaïque

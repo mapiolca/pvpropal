@@ -592,6 +592,45 @@ class modPvPropal extends DolibarrModules
 			// Enregistre la spécification par défaut avec les métadonnées de classement ordonné. (FR)
 			$sql[] = "INSERT INTO ".$tableName." (entity, code, label, unit, feature_type, position, active) SELECT ".((int) $conf->entity).", '".$code."', '".$label."', '".$unit."', ".$featureType.", ".$position.", ".$active." WHERE NOT EXISTS (SELECT 1 FROM ".$tableName." WHERE entity = ".((int) $conf->entity)." AND code = '".$code."')";
 		}
+		// Guarantee the presence of the photovoltaic module product nature. (EN)
+		// Garantit la présence de la nature de produit module photovoltaïque. (FR)
+		$natureTable = $this->db->prefix().'c_product_nature';
+		$natureCode = $this->db->escape('pv_module');
+		$natureLabel = $this->db->escape('DictionaryProductNaturePhotovoltaicModule');
+		$natureWhereParts = array("code = '".$natureCode."'");
+		$natureColumns = array('code');
+		$natureValues = array("'".$natureCode."'");
+		$natureUpdateSet = array("label = '".$natureLabel."'");
+		if ($this->pvpropalColumnExists($natureTable, 'entity')) {
+			// Scope the dictionary row to the current entity when possible. (EN)
+			// Limite la ligne du dictionnaire à l'entité courante lorsque possible. (FR)
+			$natureWhereParts[] = 'entity = '.((int) $conf->entity);
+			$natureColumns[] = 'entity';
+			$natureValues[] = (int) $conf->entity;
+		}
+		if ($this->pvpropalColumnExists($natureTable, 'active')) {
+			// Ensure the photovoltaic module nature is enabled. (EN)
+			// S'assure que la nature module photovoltaïque est active. (FR)
+			$natureUpdateSet[] = 'active = 1';
+			$natureColumns[] = 'active';
+			$natureValues[] = 1;
+		}
+		$positionColumn = '';
+		if ($this->pvpropalColumnExists($natureTable, 'position')) {
+			$positionColumn = 'position';
+		} elseif ($this->pvpropalColumnExists($natureTable, 'sortorder')) {
+			$positionColumn = 'sortorder';
+		}
+		if ($positionColumn !== '') {
+			// Provide a default ordering for the photovoltaic module nature. (EN)
+			// Donne un ordre par défaut pour la nature module photovoltaïque. (FR)
+			$natureUpdateSet[] = $positionColumn.' = 1000';
+			$natureColumns[] = $positionColumn;
+			$natureValues[] = 1000;
+		}
+		$natureWhere = implode(' AND ', $natureWhereParts);
+		$sql[] = 'UPDATE '.$natureTable.' SET '.implode(', ', $natureUpdateSet).' WHERE '.$natureWhere;
+		$sql[] = 'INSERT INTO '.$natureTable.' ('.implode(', ', $natureColumns).') SELECT '.implode(', ', $natureValues).' WHERE NOT EXISTS (SELECT 1 FROM '.$natureTable.' WHERE '.$natureWhere.')';
 		// Document templates
 		$moduledir = dol_sanitizeFileName('pvpropal');
 		$myTmpObjects = array();

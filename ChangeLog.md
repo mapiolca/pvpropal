@@ -9,3 +9,4 @@
 - Sécurisation de la mise à niveau du dictionnaire PV en ajoutant les colonnes et valeurs manquantes lors des activations.
 - Compatibilité de la mise à niveau du dictionnaire PV sans dépendre de DDLFieldExists.
 - Ajout du préremplissage des caractéristiques thermiques et de conditionnement dans le dictionnaire PV.
+- Ajout automatique de la nature de produit Module Photovoltaïque lors de l'activation du module.
